@@ -332,10 +332,18 @@ function MinimalTemplate({ resume }) {
             <div key={i} style={{ paddingLeft: 14, borderLeft: "2px solid #e5e7eb", marginBottom: 16 }}>
               <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start" }}>
                 <div style={{ fontWeight: 600, fontSize: 11, color: "#111" }}>{p.title || "Untitled Project"}</div>
-                <div style={{ display: "flex", gap: 10, fontSize: 9, color: "#6b7280", marginLeft: 8 }}>
-                  {p.link   && <span style={{ color: ACCENT }}>🔗 Live</span>}
-                  {p.github && <span>⌥ GitHub</span>}
-                </div>
+                <div style={{ display: "flex", gap: 10, fontSize: 8.5, color: "#6b7280", marginLeft: 8, flexDirection: "column", alignItems: "flex-end" }}>
+                  {p.link   && (
+                    <span style={{ color: ACCENT, wordBreak: "break-all", maxWidth: 160 }}>
+                      🔗 {p.link}
+                    </span>
+                  )}
+                  {p.github && (
+                    <span style={{ wordBreak: "break-all", maxWidth: 160 }}>
+                      ⌥ {p.github}
+                    </span>
+                  )}
+              </div>
               </div>
               {/* Technologies chips */}
               {p.technologies?.length > 0 && (
