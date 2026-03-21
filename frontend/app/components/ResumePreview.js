@@ -1,6 +1,5 @@
 "use client"
 
-
 const S = {
   page:     { fontFamily: "'Arial', 'Helvetica Neue', Helvetica, sans-serif", fontSize: 11, color: "#1a1a1a", background: "#fff", width: 794, minHeight: 1123, boxSizing: "border-box" },
   nowrap:   { whiteSpace: "nowrap" },
@@ -37,23 +36,27 @@ function TechChips({ techs, bg = "#f3f4f6", border = "#e5e7eb", color = "#374151
   );
 }
 
-
-function ContactItem({ value, prefix = "" }) {
-  if (!value) return null;
-  return <span>{prefix}{value}</span>;
-}
-
-
+/* ═══════════════════════════════════════
+   MODERN TEMPLATE
+═══════════════════════════════════════ */
 function ModernTemplate({ resume }) {
-  const { personalInfo: pi = {}, summary, skills = [], experience = [], education = [], projects = [] } = resume;
+  const { personalInfo: pi = {}, role, summary, skills = [], experience = [], education = [], projects = [] } = resume;
 
   return (
     <div style={{ ...S.page }}>
-      {/* ── Header ── */}
+      {/* Header */}
       <div style={{ background: "#111827", color: "#fff", padding: "30px 40px 24px" }}>
-        <div style={{ fontSize: 26, fontWeight: 700, letterSpacing: -0.5, marginBottom: 8 }}>
+        <div style={{ fontSize: 26, fontWeight: 700, letterSpacing: -0.5, marginBottom: 4 }}>
           {pi.name || "Your Name"}
         </div>
+
+        {/* Role / target job title */}
+        {role && (
+          <div style={{ fontSize: 12, color: "#c9a84c", marginBottom: 8, fontWeight: 500, letterSpacing: 0.6 }}>
+            {role}
+          </div>
+        )}
+
         <div style={{ display: "flex", flexWrap: "wrap", gap: "4px 18px", color: "#d1d5db", fontSize: 9.5 }}>
           {pi.email    && <span>✉ {pi.email}</span>}
           {pi.phone    && <span>✆ {pi.phone}</span>}
@@ -64,12 +67,11 @@ function ModernTemplate({ resume }) {
         </div>
       </div>
 
-      {/* ── 2-col body ── */}
+      {/* 2-col body */}
       <div style={{ display: "grid", gridTemplateColumns: "210px 1fr", minHeight: 900 }}>
 
         {/* Left */}
         <div style={{ background: "#f9fafb", padding: "22px 18px", borderRight: "1px solid #e5e7eb" }}>
-
           {skills.length > 0 && (
             <Section title="Skills" accent="#374151">
               <div style={{ display: "flex", flexDirection: "column", gap: 3 }}>
@@ -103,7 +105,6 @@ function ModernTemplate({ resume }) {
 
         {/* Right */}
         <div style={{ padding: "22px 30px" }}>
-
           {summary && (
             <Section title="Summary" accent="#374151">
               <p style={{ color: "#374151", lineHeight: 1.65, fontSize: 10.5, margin: 0 }}>{summary}</p>
@@ -140,7 +141,6 @@ function ModernTemplate({ resume }) {
                       {p.github && <span style={{ color: "#374151" }}>⌥ {p.github}</span>}
                     </div>
                   </div>
-                  {/* Technologies — chip display */}
                   <TechChips techs={p.technologies} />
                   {p.description && <div style={{ marginTop: 3 }}><BulletText text={p.description} /></div>}
                 </div>
@@ -153,17 +153,27 @@ function ModernTemplate({ resume }) {
   );
 }
 
-
+/* ═══════════════════════════════════════
+   CLASSIC TEMPLATE
+═══════════════════════════════════════ */
 function ClassicTemplate({ resume }) {
-  const { personalInfo: pi = {}, summary, skills = [], experience = [], education = [], projects = [] } = resume;
+  const { personalInfo: pi = {}, role, summary, skills = [], experience = [], education = [], projects = [] } = resume;
 
   return (
     <div style={{ ...S.page, padding: "44px 52px" }}>
       {/* Header */}
       <div style={{ textAlign: "center", marginBottom: 18, paddingBottom: 14, borderBottom: "2px solid #111" }}>
-        <div style={{ fontSize: 28, fontWeight: 700, letterSpacing: -0.3, marginBottom: 8 }}>
+        <div style={{ fontSize: 28, fontWeight: 700, letterSpacing: -0.3, marginBottom: 4 }}>
           {pi.name || "Your Name"}
         </div>
+
+        {/* Role / target job title */}
+        {role && (
+          <div style={{ fontSize: 12, color: "#555", marginBottom: 8, fontStyle: "italic", letterSpacing: 0.5 }}>
+            {role}
+          </div>
+        )}
+
         <div style={{ fontSize: 9.5, color: "#555", display: "flex", flexWrap: "wrap", justifyContent: "center", gap: "2px 0" }}>
           {[pi.email, pi.phone, pi.location, pi.linkedin, pi.github, pi.website].filter(Boolean).map((v, i, arr) => (
             <span key={i} style={{ display: "inline-flex", alignItems: "center" }}>
@@ -226,12 +236,11 @@ function ClassicTemplate({ resume }) {
             <div key={i} style={{ marginBottom: 14 }}>
               <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start" }}>
                 <span style={{ fontWeight: 700, fontSize: 11.5 }}>{p.title || "Untitled Project"}</span>
-                <div style={{ fontSize: 9, color: "#6b7280", display: "flex", gap: 10, marginLeft: 10 }}>
-                  {p.link   && <span style={{ color: "#2563eb" }}>🔗 {p.link}</span>}
-                  {p.github && <span>⌥ {p.github}</span>}
+                <div style={{ fontSize: 9, color: "#6b7280", display: "flex", gap: 10, marginLeft: 10, flexDirection: "column", alignItems: "flex-end" }}>
+                  {p.link   && <span style={{ color: "#2563eb", wordBreak: "break-all", maxWidth: 180 }}>🔗 {p.link}</span>}
+                  {p.github && <span style={{ wordBreak: "break-all", maxWidth: 180 }}>⌥ {p.github}</span>}
                 </div>
               </div>
-              {/* Technologies */}
               {p.technologies?.length > 0 && (
                 <div style={{ color: "#6b7280", fontSize: 9.5, fontStyle: "italic", margin: "3px 0" }}>
                   Tech: {p.technologies.join(", ")}
@@ -246,8 +255,11 @@ function ClassicTemplate({ resume }) {
   );
 }
 
+/* ═══════════════════════════════════════
+   MINIMAL TEMPLATE
+═══════════════════════════════════════ */
 function MinimalTemplate({ resume }) {
-  const { personalInfo: pi = {}, summary, skills = [], experience = [], education = [], projects = [] } = resume;
+  const { personalInfo: pi = {}, role, summary, skills = [], experience = [], education = [], projects = [] } = resume;
   const ACCENT = "#2563eb";
 
   return (
@@ -258,6 +270,14 @@ function MinimalTemplate({ resume }) {
           {pi.name || "YOUR NAME"}
         </div>
         <div style={{ height: 2, background: ACCENT, width: 64, marginBottom: 10 }} />
+
+        {/* Role / target job title */}
+        {role && (
+          <div style={{ fontSize: 12, color: ACCENT, marginBottom: 10, fontWeight: 500, letterSpacing: 0.8, textTransform: "uppercase" }}>
+            {role}
+          </div>
+        )}
+
         <div style={{ display: "flex", flexWrap: "wrap", gap: "3px 14px", color: "#6b7280", fontSize: 9.5 }}>
           {pi.email    && <span>✉ {pi.email}</span>}
           {pi.phone    && <span>✆ {pi.phone}</span>}
@@ -332,20 +352,21 @@ function MinimalTemplate({ resume }) {
             <div key={i} style={{ paddingLeft: 14, borderLeft: "2px solid #e5e7eb", marginBottom: 16 }}>
               <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start" }}>
                 <div style={{ fontWeight: 600, fontSize: 11, color: "#111" }}>{p.title || "Untitled Project"}</div>
-                <div style={{ display: "flex", gap: 10, fontSize: 8.5, color: "#6b7280", marginLeft: 8, flexDirection: "column", alignItems: "flex-end" }}>
+                {/* Show actual URLs, not label text */}
+                <div style={{ display: "flex", flexDirection: "column", alignItems: "flex-end", gap: 2, fontSize: 8.5, marginLeft: 8 }}>
                   {p.link   && (
-                    <span style={{ color: ACCENT, wordBreak: "break-all", maxWidth: 160 }}>
+                    <span style={{ color: ACCENT, wordBreak: "break-all", maxWidth: 200, textAlign: "right" }}>
                       🔗 {p.link}
                     </span>
                   )}
                   {p.github && (
-                    <span style={{ wordBreak: "break-all", maxWidth: 160 }}>
+                    <span style={{ color: "#374151", wordBreak: "break-all", maxWidth: 200, textAlign: "right" }}>
                       ⌥ {p.github}
                     </span>
                   )}
+                </div>
               </div>
-              </div>
-              {/* Technologies chips */}
+              {/* Tech chips */}
               {p.technologies?.length > 0 && (
                 <TechChips
                   techs={p.technologies}
@@ -363,7 +384,9 @@ function MinimalTemplate({ resume }) {
   );
 }
 
-
+/* ═══════════════════════════════════════
+   SHARED SECTION COMPONENTS
+═══════════════════════════════════════ */
 function Section({ title, accent = "#374151", children }) {
   return (
     <div style={{ marginBottom: 20 }}>
@@ -399,7 +422,9 @@ function MinimalSection({ title, accent, children }) {
   );
 }
 
-
+/* ═══════════════════════════════════════
+   EXPORT
+═══════════════════════════════════════ */
 export default function ResumePreview({ resume }) {
   if (!resume) return null;
   if (resume.template === "classic") return <ClassicTemplate resume={resume} />;
