@@ -38,7 +38,7 @@ const EMPTY_RESUME = {
 function Section({ icon: Icon, title, open, onToggle, onAdd, children }) {
   return (
     <div style={{ borderRadius:16, overflow:"hidden", background:"var(--card-bg)", border:"1px solid var(--border)" }}>
-      <button
+      <div
         onClick={onToggle}
         className="w-full flex items-center justify-between px-5 py-4 transition-colors"
         style={{ borderBottom: open ? "1px solid var(--border)" : "none" }}>
@@ -64,7 +64,7 @@ function Section({ icon: Icon, title, open, onToggle, onAdd, children }) {
             ? <ChevronUp   size={14} style={{ color:"var(--text-3)" }} />
             : <ChevronDown size={14} style={{ color:"var(--text-3)" }} />}
         </div>
-      </button>
+      </div>
       {open && <div className="p-5 space-y-4 anim-fade-in">{children}</div>}
     </div>
   );
