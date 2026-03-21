@@ -324,7 +324,7 @@ export default function ResumeEditorPage() {
               <Target size={13} /> ATS
             </button>
             <button onClick={() => setShowPreview(!showPreview)}
-              className="btn-ghost hidden lg:flex items-center gap-1.5 text-xs py-2 px-3">
+              className="btn-ghost flex items-center gap-1.5 text-xs py-2 px-3">
               <Eye size={13} /> {showPreview ? "Hide" : "Preview"}
             </button>
             <button onClick={handleDownload}
@@ -614,55 +614,67 @@ export default function ResumeEditorPage() {
           </div>
 
           {/* ════ A4 PREVIEW PANEL ════ */}
-          {showPreview && (
-            <div className="hidden lg:flex flex-col flex-shrink-0" style={{ width: 540 }}>
-              <div className="sticky top-32">
+          {/* ════ A4 PREVIEW — FULLSCREEN MODAL ════ */}
+        {/* ════ A4 PREVIEW PANEL ════ */}
+        {showPreview && (
+            <div
+                className="hidden md:flex flex-col flex-shrink-0"
+                style={{ width: "clamp(300px, 35vw, 420px)", marginRight: 16 }}
+            >
+                <div className="sticky top-32">
                 {/* Header row */}
                 <div className="flex items-center justify-between mb-3">
-                  <p className="text-xs font-mono uppercase tracking-widest" style={{ color:"var(--text-3)" }}>
+                    <p className="text-xs font-mono uppercase tracking-widest" style={{ color: "var(--text-3)" }}>
                     Live Preview — A4
-                  </p>
-                  <span className="text-[10px] font-mono px-2.5 py-1 rounded-full capitalize"
-                    style={{ background:"rgba(201,168,76,0.1)", color:"var(--gold)", border:"1px solid rgba(201,168,76,0.2)" }}>
+                    </p>
+                    <span
+                    className="text-[10px] font-mono px-2.5 py-1 rounded-full capitalize"
+                    style={{
+                        background: "rgba(201,168,76,0.1)",
+                        color: "var(--gold)",
+                        border: "1px solid rgba(201,168,76,0.2)",
+                    }}
+                    >
                     {resume.template}
-                  </span>
+                    </span>
                 </div>
 
-                {/*
-                  Viewport: 540px wide, fills available height.
-                  Inner A4 document is 794px wide — we scale it to fit:
-                    scale = 540 / 794 ≈ 0.68
-                  After CSS scale the element still occupies 794px of DOM width,
-                  so we shift left by half the overflow: (794 - 540) / 2 = 127px
-                  After scale the height is 1123 * 0.68 ≈ 764px,
-                  but DOM still allocates 1123px → pull up with negative margin-bottom.
-                */}
-                <div style={{
-                  width: "100%",
-                  height: "calc(100vh - 180px)",
-                  overflowY: "auto",
-                  overflowX: "hidden",
-                  borderRadius: 16,
-                  border: "1px solid var(--border)",
-                  background: isDark ? "#1c1c1c" : "#b8b5b0",
-                  padding: "28px 0 40px",
-                }}>
-                  <div style={{
-                    width: 794,
-                    transform: "scale(0.68)",
-                    transformOrigin: "top left",
-                    marginLeft: -127,
-                    position: "relative",
-                    left: "50%",
-                    marginBottom: "-360px",
-                    boxShadow: "0 8px 48px rgba(0,0,0,0.45)",
-                  }}>
-                    <ResumePreview resume={resume} />
-                  </div>
+                {/* A4 viewport */}
+                <div
+                    style={{
+                        width: "100%",
+                        height: "calc(100vh - 180px)",
+                        overflowY: "auto",
+                        overflowX: "hidden",
+                        borderRadius: 16,
+                        border: "1px solid var(--border)",
+                        background: isDark ? "#1c1c1c" : "#b8b5b0",
+                        padding: "24px 12px 32px",
+                    }}
+                >
+                    {/*
+                    Panel is 420px wide. A4 is 794px.
+                    scale = 420 / 794 ≈ 0.529
+                    After scale, DOM still occupies 794px wide — center it:
+                        left offset = (420 - 794) / 2 = -187px
+                    */}
+                    <div style={{ display: "flex", justifyContent: "center" }}>
+                        <div
+                            style={{
+                                width: 794,
+                                transform: "scale(0.48)",
+                                transformOrigin: "top center",
+                                marginBottom: "calc(-1123px * 0.52)",
+                                boxShadow: "0 8px 40px rgba(0,0,0,0.45)",
+                            }}
+                        >
+                        <ResumePreview resume={resume} />
+                        </div>
+                    </div>
                 </div>
-              </div>
+                </div>
             </div>
-          )}
+        )}
         </div>
       </main>
 
