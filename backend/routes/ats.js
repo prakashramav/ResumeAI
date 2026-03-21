@@ -1,6 +1,11 @@
 const express = require('express');
 const auth = require('../middleware/auth');
 const Resume = require('../models/Resume');
+const { GoogleGenerativeAI } = require("@google/generative-ai");
+require('dotenv').config();
+
+const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
+const model = genAI.getGenerativeModel({ model: "gemini-2.5-flash" });
 
 const router = express.Router();
 
@@ -73,36 +78,49 @@ function buildResumeText(resume) {
   ].join(" ");
 }
 
+async function aiAtsAnalysis(resumeText, jobDescription) {
+  try {
+    const prompt = `
+        You are an advanced ATS system.
 
-router.post('/check', auth, async (req, res) => {
-    try{
-        const { resumeId, jobDescription } = req.body;
-        
-        if(!resumeId || !jobDescription){
-            return res.status(400).json({ error: "Resume ID and Job Description are required" });
+        Analyze resume vs job description.
+
+        Resume:
+        ${resumeText}
+
+        Job Description:
+        ${jobDescription}
+
+        Return JSON ONLY:
+        {
+        "score": number,
+        "matchedSkills": [],
+        "missingSkills": [],
+        "suggestions": []
         }
 
-        const resume = await Resume.findOne({ _id: resumeId, userId: req.user._id });
-        if(!resume){
-            return res.status(404).json({ error: "Resume not found" });
-        }
-        const resumeText = buildResumeText(resume);
-        const result = calculateAtsScore(resumeText, jobDescription);
-        resume.atsScore = result.score;
-        resume.jobDescription = jobDescription;
-        await resume.save();
+        Rules:
+        - Consider semantic meaning
+        - Consider experience relevance
+        - Be strict but realistic
+    `;
 
-        res.json({
-            ...result,
-            resumeId,
-            suggestions: generateSuggestions(result, resume),
-        });
+    const result = await model.generateContent(prompt);
+    let text = (await result.response).text();
 
-    }catch(err){
-        console.error("ATS check error:", err);
-        res.status(500).json({ error: "Failed to calculate ATS score" });
-    }
-})
+    text = text.replace(/```json|```/g, "").trim();
+
+    return JSON.parse(text);
+  } catch (err) {
+    console.error("AI ATS error:", err);
+    return {
+      score: 0,
+      matchedSkills: [],
+      missingSkills: [],
+      suggestions: [],
+    };
+  }
+}
 
 function generateSuggestions(result, resume) {
   const suggestions = [];
@@ -131,5 +149,52 @@ function generateSuggestions(result, resume) {
 
   return suggestions;
 }
+
+router.post('/check', auth, async (req, res) => {
+    try{
+        const { resumeId, jobDescription } = req.body;
+        
+        if(!resumeId || !jobDescription){
+            return res.status(400).json({ error: "Resume ID and Job Description are required" });
+        }
+
+        const resume = await Resume.findOne({ _id: resumeId, userId: req.user._id });
+        if(!resume){
+            return res.status(404).json({ error: "Resume not found" });
+        }
+
+        const resumeText = buildResumeText(resume);
+
+        const keyWordResult = calculateAtsScore(resumeText, jobDescription);
+        const aiResult = await aiAtsAnalysis(resumeText, jobDescription);
+
+        const finalScore = Math.round(
+            keywordResult.score * 0.4 + aiResult.score * 0.6
+        );
+
+        const result = {
+            score: finalScore,
+            matched: [...new Set([...keywordResult.matched, ...(aiResult.matchedSkills || [])])],
+            missing: [...new Set([...keywordResult.missing, ...(aiResult.missingSkills || [])])],
+        };
+    
+        resume.atsScore = result.score;
+        resume.jobDescription = jobDescription;
+        await resume.save();
+
+        res.json({
+            ...result,
+            resumeId,
+            suggestions: [
+                ...generateSuggestions(result, resume),
+                ...(aiResult.suggestions || []),
+            ],
+        });
+
+    }catch(err){
+        console.error("ATS check error:", err);
+        res.status(500).json({ error: "Failed to calculate ATS score" });
+    }
+})
 
 module.exports = router
