@@ -29,7 +29,8 @@ const educationSchema = new mongoose.Schema({
 const resumeSchema = new mongoose.Schema(
   {
     userId: { type: mongoose.Schema.Types.ObjectId, ref: "User", required: true },
-    title: { type: String, required: true, default: "My Resume" },
+    title: { type: String, required: true, default: "" },
+    role: { type: String, default: "" },
     template: { type: String, enum: ["modern", "classic", "minimal"], default: "modern" },
     personalInfo: {
       name: { type: String, default: "" },

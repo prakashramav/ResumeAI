@@ -169,13 +169,13 @@ router.post('/check', auth, async (req, res) => {
         const aiResult = await aiAtsAnalysis(resumeText, jobDescription);
 
         const finalScore = Math.round(
-            keywordResult.score * 0.4 + aiResult.score * 0.6
+            keyWordResult.score * 0.4 + aiResult.score * 0.6
         );
 
         const result = {
             score: finalScore,
-            matched: [...new Set([...keywordResult.matched, ...(aiResult.matchedSkills || [])])],
-            missing: [...new Set([...keywordResult.missing, ...(aiResult.missingSkills || [])])],
+            matched: [...new Set([...keyWordResult.matched, ...(aiResult.matchedSkills || [])])],
+            missing: [...new Set([...keyWordResult.missing, ...(aiResult.missingSkills || [])])],
         };
     
         resume.atsScore = result.score;
