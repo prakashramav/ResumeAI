@@ -6,6 +6,9 @@ const rateLimit = require('express-rate-limit')
 const connectDB = require('./config/db')
 const authRoutes = require('./routes/auth')
 const resumeRoutes = require('./routes/resumes')
+const aiRoutes = require('./routes/ai')
+const atsRoutes = require('./routes/ats')
+const interviewRoutes = require('./routes/interview')
 
 connectDB();
 
@@ -39,6 +42,22 @@ app.use(limiter)
 
 app.use('/api/auth', authRoutes);
 app.use('/api/resumes', resumeRoutes);
+app.use('/api/ai', aiLimiter, aiRoutes);
+app.use('/api/ats', atsRoutes);
+app.use('/api/interview', interviewRoutes);
+
+app.get("/api/health", (_req, res) => res.json({ status: "ok", message: "ResumeAI backend is healthy" }));
+
+app.get('/', (req,res) => {
+  res.send("Resume Builder API is running.");
+})
+
+// error handling middleware
+app.use((err, _req, res, _next) => {
+  console.error(err.stack);
+  res.status(err.status || 500).json({ error: err.message || "Internal server error" });
+});
+
 
 app.listen(PORT, () => {
     console.log(`Server is running on http://localhost:${PORT}`)
