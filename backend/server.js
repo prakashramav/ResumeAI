@@ -5,14 +5,12 @@ const cookieParser = require('cookie-parser')
 const rateLimit = require('express-rate-limit')
 const connectDB = require('./config/db')
 const authRoutes = require('./routes/auth')
+
 connectDB();
 
 const app = express()
 
-
 const PORT = process.env.PORT || 5000
-
-app.use(express.json())
 
 const limiter = rateLimit({
     windowMs: 15 * 60 * 1000, // 15 minutes
