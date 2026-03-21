@@ -5,6 +5,7 @@ const cookieParser = require('cookie-parser')
 const rateLimit = require('express-rate-limit')
 const connectDB = require('./config/db')
 const authRoutes = require('./routes/auth')
+const resumeRoutes = require('./routes/resumes')
 
 connectDB();
 
@@ -37,8 +38,7 @@ app.use(limiter)
 //routes 
 
 app.use('/api/auth', authRoutes);
-
-
+app.use('/api/resumes', resumeRoutes);
 
 app.listen(PORT, () => {
     console.log(`Server is running on http://localhost:${PORT}`)
