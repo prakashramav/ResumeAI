@@ -7,7 +7,7 @@ const api = axios.create({
     withCredentials: true, // send cookies with every request 
 })
 
-api.interceptors.response.use((config) => {
+api.interceptors.request.use((config) => {
     if (typeof document !== "undefined") {
     const match = document.cookie.match(/(?:^|; )auth_token_ref=([^;]*)/);
     const token = match ? decodeURIComponent(match[1]) : sessionStorage.getItem("token");

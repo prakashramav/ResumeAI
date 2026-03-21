@@ -1,14 +1,23 @@
 const express = require("express");
 const auth = require("../middleware/auth");
-const OpenAI = require("openai");
-const rateLimit = require("express-rate-limit");
+// const OpenAI = require("openai");
+const { GoogleGenerativeAI } = require("@google/generative-ai");
 
+require('dotenv').config();
 const router = express.Router();
-const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
+
+const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
+const model = genAI.getGenerativeModel({ model: "gemini-2.5-flash" });
 
 
 const sanitize = (text) => String(text || "").replace(/[<>]/g, "");
 
+
+const generate = async (prompt) => {
+    const result = await model.generateContent(prompt);
+    const response = await result.response();
+    return response.text();
+}
 // POST /api/ai/enhance-summary
 
 router.post("/enhance-summary", auth, async (req, res) => {
@@ -43,15 +52,15 @@ Rules:
 - Output ONLY paragraph
 `;
 
-    const response = await openai.chat.completions.create({
-      model: "gpt-4o-mini",
-      messages: [{ role: "user", content: prompt }],
-      temperature: 0.7,
-      max_tokens: 150,
-    });
+    // const response = await openai.chat.completions.create({
+    //   model: "gpt-4o-mini",
+    //   messages: [{ role: "user", content: prompt }],
+    //   temperature: 0.7,
+    //   max_tokens: 150,
+    // });
 
-    const content = response?.choices?.[0]?.message?.content?.trim();
-
+    // const content = response?.choices?.[0]?.message?.content?.trim();
+    const content = (await generate(prompt))?.trim();
     if (!content) {
       return res.status(500).json({ error: "AI returned empty response" });
     }
@@ -91,14 +100,15 @@ Rules:
 - Output ONLY bullet points with •
 `;
 
-    const response = await openai.chat.completions.create({
-      model: "gpt-4o-mini",
-      messages: [{ role: "user", content: prompt }],
-      temperature: 0.7,
-      max_tokens: 220,
-    });
+    // const response = await openai.chat.completions.create({
+    //   model: "gpt-4o-mini",
+    //   messages: [{ role: "user", content: prompt }],
+    //   temperature: 0.7,
+    //   max_tokens: 220,
+    // });
 
-    let content = response?.choices?.[0]?.message?.content?.trim();
+    // let content = response?.choices?.[0]?.message?.content?.trim();
+    let content = (await generate(prompt))?.trim();
 
     if (!content) {
       return res.status(500).json({ error: "AI returned empty response" });
@@ -141,14 +151,15 @@ Rules:
 - Output ONLY bullet points starting with •
 `;
 
-    const response = await openai.chat.completions.create({
-      model: "gpt-4o-mini",
-      messages: [{ role: "user", content: prompt }],
-      temperature: 0.7,
-      max_tokens: 250,
-    });
+    // const response = await openai.chat.completions.create({
+    //   model: "gpt-4o-mini",
+    //   messages: [{ role: "user", content: prompt }],
+    //   temperature: 0.7,
+    //   max_tokens: 250,
+    // });
 
-    let content = response?.choices?.[0]?.message?.content?.trim();
+    // let content = response?.choices?.[0]?.message?.content?.trim();
+    let content = (await generate(prompt))?.trim();
 
     if (!content) {
       return res.status(500).json({ error: "AI returned empty response" });
@@ -190,19 +201,21 @@ Return JSON:
 { "skills": ["skill1", "skill2"] }
 `;
 
-    const response = await openai.chat.completions.create({
-      model: "gpt-4o-mini",
-      messages: [{ role: "user", content: prompt }],
-      temperature: 0.5,
-      response_format: { type: "json_object" },
-    });
+    // const response = await openai.chat.completions.create({
+    //   model: "gpt-4o-mini",
+    //   messages: [{ role: "user", content: prompt }],
+    //   temperature: 0.5,
+    //   response_format: { type: "json_object" },
+    // });
 
-    const content = response?.choices?.[0]?.message?.content;
+    // const content = response?.choices?.[0]?.message?.content;
+
+    const content = (await generate(prompt))?.trim();
 
     if (!content) {
       return res.status(500).json({ error: "AI returned empty response" });
     }
-
+    content = content.replace(/```json|```/g, "").trim();
     const data = JSON.parse(content);
 
     res.json({ skills: data.skills || [] });

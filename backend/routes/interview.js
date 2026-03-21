@@ -1,9 +1,26 @@
 const express = require("express");
-const OpenAI = require("openai");
+// const OpenAI = require("openai");
+const { GoogleGenerativeAI } = require("@google/generative-ai");
+
+
+require("dotenv").config();
 const auth = require("../middleware/auth");
 
 const router = express.Router();
-const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
+
+// const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
+
+const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
+// const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash-latest" });
+
+// const model = genAI.getGenerativeModel({
+//   model: "gemini-pro"
+// });
+
+// const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash-latest" });
+const model = genAI.getGenerativeModel({
+  model: "gemini-2.5-flash"  // ✅ current stable model
+});
 
 // POST generate Interview questions to an user
 router.post("/generate", auth, async (req, res) => {
@@ -48,15 +65,24 @@ router.post("/generate", auth, async (req, res) => {
         - Each hint should be a 1-sentence tip on how to answer well
         - Make technical questions appropriately challenging for ${difficulty} level`;
 
-    const response = await openai.chat.completions.create({
-        model: "gpt-4o-mini",
-        messages: [{ role: "user", content: prompt }],
-        temperature: 0.7,
-        response_format: { type: "json_object" },
-        max_tokens: 1200, 
-    });
+    // const response = await openai.chat.completions.create({
+    //     model: "gpt-4o-mini",
+    //     messages: [{ role: "user", content: prompt }],
+    //     temperature: 0.7,
+    //     response_format: { type: "json_object" },
+    //     max_tokens: 1200, 
+    // });
+    const result = await model.generateContent(prompt);
+    const text = result.response.text();
 
-    const questions = JSON.parse(response.choices[0].message.content);
+    let questions;
+    try {
+      const cleanText = text.replace(/```json|```/g, "").trim();
+      questions = JSON.parse(cleanText);
+    } catch (err) {
+      console.error("Gemini JSON error:", text); 
+      return res.status(500).json({ error: "AI returned invalid format" });
+    }
     res.json({ questions, title, skills, difficulty });
   } catch (err) {
     console.error("Interview generate error:", err.message);

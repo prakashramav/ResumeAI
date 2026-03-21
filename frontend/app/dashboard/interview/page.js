@@ -14,6 +14,7 @@ import Link from "next/link";
 
 import { useAuth } from "../../context/AuthContext";
 import Navbar from "@/app/components/Navbar";
+import { resumeAPI,interviewAPI } from "@/app/lib/api";
 
 const DIFFICULTY = [
   { id: "easy",   label: "Easy",   desc: "Fresher / entry level" },
