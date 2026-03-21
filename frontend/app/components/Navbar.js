@@ -47,9 +47,13 @@ export default function Navbar() {
                         navLinks.map(l => {
                             const active = pathname === l.href;
                             return (
-                                <Link key={l.href} href={l.href} 
-                                  className={`flex items-center gap-1.5 text-xs font-medium px-3 py-1.5 rounded-lg transition-all ${active ? 'bg-primary text-white' : 'hover:bg-muted'}`}
-                                >
+                                <Link key={l.href} href={l.href}
+                                    className="flex items-center gap-1.5 text-xs font-medium px-3 py-1.5 rounded-lg transition-all"
+                                    style={{
+                                        color:      active ? "var(--gold)"               : "var(--text-2)",
+                                        background: active ? "rgba(201,168,76,0.08)"     : "transparent",
+                                        border:     active ? "1px solid rgba(201,168,76,0.2)" : "1px solid transparent",
+                                    }}>
                                     <l.icon size={13} /> {l.label}
                                 </Link>
                             );
