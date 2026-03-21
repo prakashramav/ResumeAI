@@ -29,16 +29,24 @@ export function AuthProvider({ children}){
   }
 
   const login = async (email, password) => {
-    const res = await axios.post(`${API_URL}/auth/login`, { email, password });
-    setUser(res.data.user);
-    return res.data.user;
+    try{
+      const res = await axios.post(`${API_URL}/auth/login`, { email, password });
+      setUser(res.data.user);
+      return res.data.user;
+    }catch(err){
+      throw new Error(err.response?.data?.error || "Login failed");
+    }
   }
 
   const register = async (name, email, password) => {
+  try {
     const res = await axios.post(`${API_URL}/auth/register`, { name, email, password });
     setUser(res.data.user);
     return res.data.user;
+  } catch (err) {
+    throw new Error(err.response?.data?.error || "Registration failed");
   }
+};
 
   const logout = async () => {
     try{

@@ -37,7 +37,7 @@ router.post('/register', async (req, res) => {
     try {
         const data = registerZodSchema.parse(req.body);
         const existing = await User.findOne({ email: data.email });
-        if (existing) return res.status(400).json({ error: "Email already registered" });
+        if (existing) return res.status(400).json({ error: "User already Exists"});
 
         const user = await User.create(data);
         const token = generateToken({id: user._id, email: user.email});
