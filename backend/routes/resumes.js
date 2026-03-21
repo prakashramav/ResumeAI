@@ -14,12 +14,12 @@ router.get('/', auth, async (req, res) => {
         const skip = (page - 1) * limit;
 
         const [resumes, total] = await Promise.all([
-            Resume.find({userId : req.user_id})
+            Resume.find({userId : req.user._id})
                 .sort({createdAt : -1})
                 .skip(skip)
                 .limit(limit)
                 .select("-jobDescription"),
-            Resume.countDocuments({userId : req.user_id}),
+            Resume.countDocuments({userId : req.user._id}),
         ]);
         res.json({resumes, total, page, pages: Math.ceil(total / limit)});
     }catch(err){
@@ -60,10 +60,17 @@ router.get('/:id', auth, async (req, res) => {
 
 router.put('/:id', auth, async (req, res) => {
     try{
+        let updateData = {...req.body};
+
+        if (updateData.experience) {
+            updateData.experience = updateData.experience.filter(
+                exp => exp.company?.trim() && exp.position?.trim()
+            );
+        }
         const resume = await Resume.findOneAndUpdate(
             {_id: req.params.id, userId: req.user._id},
-            {...req.body, userId: req.user._id},
-            {new: true, runValidators: true}
+            updateData,
+            {returnDocument: 'after', runValidators: true}
         );
         if(!resume){
             return res.status(404).json({error: "Resume not found"});
