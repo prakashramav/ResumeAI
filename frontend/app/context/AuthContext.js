@@ -20,7 +20,7 @@ export function AuthProvider({ children}){
 
   const fetchMe = async () => {
     try{
-      const res = await axios.get(`${API_URL}/api/auth/me`);
+      const res = await axios.get(`${API_URL}/auth/me`);
       setUser(res.data.user);
     } catch{
       setUser(null);
@@ -31,7 +31,7 @@ export function AuthProvider({ children}){
 
   const login = async (email, password) => {
     try{
-      const res = await axios.post(`${API_URL}/api/auth/login`, { email, password });
+      const res = await axios.post(`${API_URL}/auth/login`, { email, password });
       setUser(res.data.user);
       return res.data.user;
     }catch(err){
@@ -41,7 +41,7 @@ export function AuthProvider({ children}){
 
   const register = async (name, email, password) => {
   try {
-    const res = await axios.post(`${API_URL}/api/auth/register`, { name, email, password });
+    const res = await axios.post(`${API_URL}/auth/register`, { name, email, password });
     setUser(res.data.user);
     return res.data.user;
   } catch (err) {
@@ -52,7 +52,7 @@ export function AuthProvider({ children}){
 
   const logout = async () => {
     try{
-      await axios.post(`${API_URL}/api/auth/logout`);
+      await axios.post(`${API_URL}/auth/logout`);
     }catch{}
     setUser(null);
   }
