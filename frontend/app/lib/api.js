@@ -8,13 +8,9 @@ const api = axios.create({
 })
 
 api.interceptors.request.use((config) => {
-    if (typeof document !== "undefined") {
-    const match = document.cookie.match(/(?:^|; )auth_token_ref=([^;]*)/);
-    const token = match ? decodeURIComponent(match[1]) : sessionStorage.getItem("token");
-    if (token) config.headers["Authorization"] = `Bearer ${token}`;
-  }
   return config;
 });
+
 
 api.interceptors.response.use(
   (res) => res,
