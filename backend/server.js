@@ -28,6 +28,8 @@ const aiLimiter = rateLimit({
     message: "Too many AI requests from this IP, please try again after an hour"
 })
 
+app.set("trust proxy", 1); // trust first proxy
+
 app.use(cors({
     origin: process.env.CLIENT_URL || "http://localhost:3000",
     credentials: true,
