@@ -21,10 +21,12 @@ const loginZodSchema = z.object({
 
 const COOKIE_OPTIONS = {
     httpOnly: true,
-    secure: true,        
-    sameSite: "None",    
+    secure: true,
+    sameSite: "none",
+    path: "/",
     maxAge: 7 * 24 * 60 * 60 * 1000,
 };
+
 const generateToken = (payload) => {
     return jwt.sign(payload, process.env.JWT_SECRET, { 
         expiresIn: process.env.JWT_EXPIRES_IN || "7d"
