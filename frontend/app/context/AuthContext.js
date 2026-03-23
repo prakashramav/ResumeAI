@@ -3,7 +3,8 @@
 import {createContext, useContext, useState, useEffect} from 'react';
 import axios from 'axios';
 
-const API_URL = "https://resumeai-6y80.onrender.com/api";
+const API_URL = process.env.NEXT_PUBLIC_API_URL;
+
 
 axios.defaults.withCredentials = true; // send cookies with every request
 
@@ -19,7 +20,7 @@ export function AuthProvider({ children}){
 
   const fetchMe = async () => {
     try{
-      const res = await axios.get(`${API_URL}/auth/me`);
+      const res = await axios.get(`${API_URL}/api/auth/me`);
       setUser(res.data.user);
     } catch{
       setUser(null);
@@ -30,7 +31,7 @@ export function AuthProvider({ children}){
 
   const login = async (email, password) => {
     try{
-      const res = await axios.post(`${API_URL}/auth/login`, { email, password });
+      const res = await axios.post(`${API_URL}/api/auth/login`, { email, password });
       setUser(res.data.user);
       return res.data.user;
     }catch(err){
@@ -40,7 +41,7 @@ export function AuthProvider({ children}){
 
   const register = async (name, email, password) => {
   try {
-    const res = await axios.post(`${API_URL}/auth/register`, { name, email, password });
+    const res = await axios.post(`${API_URL}/api/auth/register`, { name, email, password });
     setUser(res.data.user);
     return res.data.user;
   } catch (err) {
@@ -51,7 +52,7 @@ export function AuthProvider({ children}){
 
   const logout = async () => {
     try{
-      await axios.post(`${API_URL}/auth/logout`);
+      await axios.post(`${API_URL}/api/auth/logout`);
     }catch{}
     setUser(null);
   }
