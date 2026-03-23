@@ -5,26 +5,147 @@ const { GoogleGenerativeAI } = require("@google/generative-ai");
 require('dotenv').config();
 
 const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
-const model = genAI.getGenerativeModel({ model: "gemini-2.5-flash" });
+const model = genAI.getGenerativeModel({
+  model: "gemini-2.5-flash-lite",
+  generationConfig: {
+    temperature: 0,  // no randomness = consistent score
+    topP: 1,
+    topK: 1,
+  }
+});
+
+const modelFallback = genAI.getGenerativeModel({
+  model: "gemini-2.5-flash",
+  generationConfig: { temperature: 0, topP: 1, topK: 1 }
+});
 
 const router = express.Router();
 
+const TECH_KEYWORDS = new Set([
+  // ── Web Frontend ──
+  "react","angular","vue","nextjs","nuxtjs","svelte","html","css","javascript",
+  "typescript","tailwind","bootstrap","sass","scss","webpack","vite","redux",
+  "contextapi","zustand","css-in-js","styled-components","framer","motion",
+  "responsive","accessibility","pwa","spa","ssr","seo",
+
+  // ── Web Backend ──
+  "node","nodejs","express","nestjs","fastapi","django","flask","spring",
+  "laravel","rails","graphql","restful","api","apis","microservices","websocket",
+  "authentication","authorization","jwt","oauth","middleware","serverless",
+
+  // ── Databases ──
+  "mongodb","postgresql","mysql","sqlite","redis","firebase","supabase",
+  "dynamodb","cassandra","elasticsearch","prisma","mongoose","sequelize","orm",
+  "sql","nosql","database","schema","query","indexing","migration",
+
+  // ── AI / ML / Data Science ──
+  "python","tensorflow","pytorch","keras","scikit-learn","sklearn","numpy",
+  "pandas","matplotlib","seaborn","jupyter","nlp","computer-vision","cv",
+  "deep-learning","machine-learning","neural-network","transformers","bert",
+  "llm","generative","ai","artificial-intelligence","reinforcement-learning",
+  "feature-engineering","model","training","inference","deployment","mlops",
+  "huggingface","openai","langchain","rag","embeddings","vectordb","pinecone",
+
+  // ── Data Analytics / BI ──
+  "sql","tableau","powerbi","looker","excel","data-analysis","analytics",
+  "visualization","dashboard","etl","pipeline","airflow","spark","hadoop",
+  "hive","kafka","dbt","snowflake","bigquery","redshift","data-warehouse",
+  "statistics","hypothesis","regression","classification","clustering","a/b",
+
+  // ── DevOps / Cloud ──
+  "docker","kubernetes","jenkins","github-actions","gitlab-ci","circleci",
+  "terraform","ansible","helm","nginx","linux","bash","shell","ci/cd","cicd",
+  "aws","azure","gcp","cloud","s3","ec2","lambda","cloudfront","iam",
+  "monitoring","logging","prometheus","grafana","elk","datadog","sentry",
+  "infrastructure","deployment","scaling","load-balancer","microservices",
+
+  // ── Mobile ──
+  "react-native","flutter","swift","kotlin","android","ios","expo","xcode",
+  "mobile","app","native","cross-platform",
+
+  // ── General Programming ──
+  "java","c++","c#","golang","go","rust","php","ruby","scala","kotlin",
+  "git","github","gitlab","bitbucket","agile","scrum","jira","linux",
+  "algorithms","data-structures","oop","functional","solid","design-patterns",
+  "testing","jest","pytest","junit","mocha","cypress","selenium","tdd","bdd",
+  "code-review","reviews","documentation","debugging","performance",
+
+  // ── Cybersecurity ──
+  "security","encryption","ssl","tls","penetration","vulnerability","firewall",
+  "oauth","sso","compliance","gdpr","owasp","zero-trust",
+
+  // ── Soft / Universal Keywords ──
+  "scalable","modular","secure","clean","reusable","maintainable","documented",
+  "asynchronous","optimization","architecture","stability","quality","agile",
+  "collaborate","communication","problem-solving","analytical","leadership",
+  "fullstack","full-stack","frontend","backend","engineer","developer",
+  "solutions","driven","build","deploy","integrate","design","implement",
+  "web","applications","development","frameworks","systems","platform",
+  "assurance","planning","code","testing","research","analysis","model",
+]);
+
+
 const STOP_WORDS = new Set([
+  // Original
   "a","an","the","and","or","but","in","on","at","to","for",
   "of","with","by","from","is","are","was","were","be","been",
   "have","has","had","do","does","did","will","would","could",
   "should","may","might","shall","can","need","dare","ought",
   "used","able","i","we","you","he","she","it","they","me",
   "him","her","us","them","my","your","his","its","our","their",
+
+  // ← ADD THESE — common words that pollute ATS results
+  "this","that","these","those","what","which","who","whom",
+  "when","where","why","how","all","each","every","both",
+  "few","more","most","other","some","such","no","not","only",
+  "own","same","so","than","too","very","just","about","above",
+  "after","before","between","into","through","during","without",
+  "work","working","team","role","skills","strong","eager",
+  "looking","seeking","using","building","making","ensure",
+  "across","within","well","also","new","use","get","like",
+  "including","based","per","over","up","out","as","if","any",
+
+  // ← ADD THESE — common words that pollute ATS results
+    "contract","job","opportunity","global","assignments","hours",
+    "passionate","industry","developers","developer","clients","client",
+    "company","companies","salary","competitive","remote","contractual",
+    "traditional","constraints","worldwide","leading","experts","expand",
+    "professional","network","innovative","forefront","technology",
+    "shortlisted","complete","assessment","contacted","expected","start",
+    "duration","end","dates","fixed","weekly","averaging","cutting","edge",
+    "fast","paced","environment","enhance","continuously","dynamic","join",
+    "offer","looking","open","junior","expert","equivalent","spoken",
+    "written","english","interest","knowledge","familiarity","exposure",
+    "experience","experiences","experienced",
+
 ]);
 
+
+function stemWord(word) {
+  if (word.length < 4) return word; // don't stem short words
+
+  // Only strip endings that produce valid root words
+  if (word.endsWith("ing")   && word.length > 6)  return word.slice(0, -3);
+  if (word.endsWith("tion")  && word.length > 6)  return word.slice(0, -3); // authentication → authenticat
+  if (word.endsWith("ment")  && word.length > 6)  return word.slice(0, -4); // deployment → deploy (keep as is)
+  if (word.endsWith("ity")   && word.length > 5)  return word.slice(0, -3); // security → secur
+  if (word.endsWith("ies")   && word.length > 4)  return word.slice(0, -3) + "y";
+  if (word.endsWith("ed")    && word.length > 4)  return word.slice(0, -2);
+  if (word.endsWith("er")    && word.length > 4)  return word.slice(0, -2);
+  if (word.endsWith("ly")    && word.length > 4)  return word.slice(0, -2);
+  if (word.endsWith("s")     && word.length > 3)  return word.slice(0, -1);
+
+  return word;
+}
 function extractKeywords(text) {
   if (!text) return [];
   return text
     .toLowerCase()
-    .replace(/[^a-z0-9\s+#.]/g, " ")
+    .replace(/[^a-z0-9\s\-#.+]/g, " ")
     .split(/\s+/)
-    .filter((w) => w.length > 2 && !STOP_WORDS.has(w));
+    .map(w => w.replace(/^[^a-z0-9]+|[^a-z0-9]+$/g, ""))
+    .filter(w => w.length > 1 && !STOP_WORDS.has(w))
+    .map(w => stemWord(w)); // ← stem every word
 }
 
 function getKeywordFrequency(words) {
@@ -36,13 +157,30 @@ function getKeywordFrequency(words) {
 function calculateAtsScore(resumeText, jobText) {
   const resumeWords = extractKeywords(resumeText);
   const jobWords    = extractKeywords(jobText);
-  const jobFreq     = getKeywordFrequency(jobWords);
-  const resumeFreq  = getKeywordFrequency(resumeWords);
 
-  const sortedJobKeywords = Object.entries(jobFreq)
+  const jobFreq    = getKeywordFrequency(jobWords);
+  const resumeFreq = getKeywordFrequency(resumeWords);
+
+  // ONLY pick tech keywords from job description
+  // Fall back to frequent non-stop words if not enough tech keywords found
+  const techFromJob = Object.entries(jobFreq)
+    .filter(([word]) => TECH_KEYWORDS.has(word))
     .sort((a, b) => b[1] - a[1])
-    .slice(0, 40)
     .map(([word]) => word);
+
+  const nonTechFromJob = Object.entries(jobFreq)
+    .filter(([word]) => !TECH_KEYWORDS.has(word))
+    .sort((a, b) => b[1] - a[1])
+    .map(([word]) => word);
+
+  // Fill up to 30 keywords — tech first, then non-tech as fallback
+  const sortedJobKeywords = [
+    ...techFromJob,
+    ...nonTechFromJob,
+  ].slice(0, 30);
+
+  console.log("Tech keywords from JD:", techFromJob);
+  console.log("Total keywords used:", sortedJobKeywords.length);
 
   const matched = [];
   const missing = [];
@@ -64,17 +202,20 @@ function calculateAtsScore(resumeText, jobText) {
   };
 }
 
+
 function buildResumeText(resume) {
   return [
-    (resume.skills?.join(" ") + " ").repeat(3),
-    resume.summary || "",
+    (resume.skills?.map(s => s.toLowerCase()).join(" ") + " ").repeat(5),
+    resume.summary?.toLowerCase() || "",
     resume.projects?.map(p =>
-      `${p.title} ${p.description} ${p.technologies?.join(" ") || ""}`  
-    ).join(" ") || "",
+      `${p.title} ${p.description} ${p.technologies?.map(t => t.toLowerCase()).join(" ") || ""}`
+    ).join(" ").toLowerCase() || "",
     resume.experience?.map(e =>
       `${e.position} ${e.company} ${e.description}`
-    ).join(" ") || "",
-    resume.education?.map(e => `${e.degree} ${e.field}`).join(" ") || "",
+    ).join(" ").toLowerCase() || "",
+    resume.education?.map(e =>
+      `${e.degree} ${e.field}`
+    ).join(" ").toLowerCase() || "",
   ].join(" ");
 }
 
@@ -103,7 +244,17 @@ async function aiAtsAnalysis(resumeText, jobDescription) {
         - Consider experience relevance
         - Be strict but realistic
     `;
-    const result = await model.generateContent(prompt);
+    let result;
+    try {
+      result = await model.generateContent(prompt); // try lite first
+    } catch (err) {
+      if (err.status === 429) {
+        console.log("Lite quota exceeded, trying fallback model...");
+        result = await modelFallback.generateContent(prompt); // fallback
+      } else {
+        throw err;
+      }
+    }
     let text = (await result.response).text();
     text = text.replace(/```json|```/g, "").trim();
     return JSON.parse(text);
@@ -131,23 +282,47 @@ function generateSuggestions(result, resume) {
   return suggestions;
 }
 
+
+// Add this helper function at the top (after STOP_WORDS):
+
 /* ─────────────────────────────────────────
    POST /api/ats/check
 ───────────────────────────────────────── */
 router.post('/check', auth, async (req, res) => {
   try {
     const { resumeId, jobDescription } = req.body;
+    console.log("=== ATS CHECK CALLED ===");
+    console.log("resumeId:", resumeId);
+    console.log("jobDescription length:", jobDescription?.length);
+
     if (!resumeId || !jobDescription)
       return res.status(400).json({ error: "Resume ID and Job Description are required" });
 
     const resume = await Resume.findOne({ _id: resumeId, userId: req.user._id });
+    console.log("Resume found:", !!resume);
+    console.log("Resume skills:", resume?.skills);
+    console.log("Resume userId:", resume?.userId);
+    console.log("req.user._id:", req.user?._id);
+
     if (!resume) return res.status(404).json({ error: "Resume not found" });
 
-    const resumeText    = buildResumeText(resume);
-    const keyWordResult = calculateAtsScore(resumeText, jobDescription);
-    const aiResult      = await aiAtsAnalysis(resumeText, jobDescription);
+    const resumeText = buildResumeText(resume);
+    console.log("Resume text length:", resumeText.length);
+    console.log("Resume text preview:", resumeText.substring(0, 200));
 
-    const finalScore = Math.round(keyWordResult.score * 0.4 + aiResult.score * 0.6);
+    const keyWordResult = calculateAtsScore(resumeText, jobDescription);
+    console.log("=== KEYWORD SCORE:", keyWordResult.score);
+    console.log("Keyword matched:", keyWordResult.matchedCount, "/", keyWordResult.totalJobKeywords);
+    console.log("Matched keywords:", keyWordResult.matched);
+
+    const aiResult = await aiAtsAnalysis(resumeText, jobDescription);
+    console.log("=== AI SCORE:", aiResult.score);
+
+    const aiScore = aiResult.score || 0;
+    const finalScore = aiScore === 0
+        ? keyWordResult.score  // AI failed — use keyword score only
+        : Math.round(keyWordResult.score * 0.4 + aiScore * 0.6);
+            console.log("=== FINAL SCORE:", finalScore);
 
     const result = {
       score:   finalScore,
@@ -158,23 +333,25 @@ router.post('/check', auth, async (req, res) => {
     resume.atsScore       = result.score;
     resume.jobDescription = jobDescription;
     await resume.save();
+    console.log("Score saved to DB:", result.score);
 
     res.json({
       ...result,
       resumeId,
       totalJobKeywords: keyWordResult.totalJobKeywords,
       matchedCount:     keyWordResult.matchedCount,
+      projects:         resume.projects,
       suggestions: [
         ...generateSuggestions(result, resume),
         ...(aiResult.suggestions || []),
       ],
     });
+
   } catch (err) {
     console.error("ATS check error:", err);
     res.status(500).json({ error: "Failed to calculate ATS score" });
   }
 });
-
 /* ─────────────────────────────────────────
    POST /api/ats/update-summary
    Only called when score < 75
@@ -220,10 +397,9 @@ router.post('/update-summary', auth, async (req, res) => {
 
     resume.summary = newSummary;
     await resume.save();
-
     res.json({ summary: newSummary });
   } catch (err) {
-    console.error("Update summary error:", err);
+    console.error("Update summary error:", err.message);
     res.status(500).json({ error: "Failed to update summary" });
   }
 });
@@ -290,7 +466,6 @@ router.post('/update-projects', auth, async (req, res) => {
 
     resume.projects = updatedProjects;
     await resume.save();
-
     res.json({ projects: updatedProjects });
   } catch (err) {
     console.error("Update projects error:", err);
