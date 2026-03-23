@@ -1,17 +1,17 @@
 "use client"
 
 import { useState } from "react";
-import { X, Target, Loader2, CheckCircle, AlertCircle, Sparkles } from "lucide-react";
+import { X, Target, Loader2, CheckCircle, AlertCircle, Sparkles, FileText } from "lucide-react";
 import { atsAPI } from "../lib/api";
 import toast from "react-hot-toast";
 
-function ScoreRing({score}){
-    const r= 60, circ = 2 * Math.PI * r;
-    const offset = circ - (score / 100) * circ;
-    const color = score >= 70 ? "#4ade80" : score >= 40 ? "#C9A84C" : "#f87171";
-    const label = score >= 70 ? "Great Match!" : score >= 40 ? "Average Match" : "Low Match";
+function ScoreRing({ score }) {
+  const r = 60, circ = 2 * Math.PI * r;
+  const offset = circ - (score / 100) * circ;
+  const color = score >= 70 ? "#4ade80" : score >= 40 ? "#C9A84C" : "#f87171";
+  const label = score >= 70 ? "Great Match!" : score >= 40 ? "Average Match" : "Low Match";
 
-    return (
+  return (
     <div className="flex flex-col items-center">
       <div className="relative">
         <svg width="160" height="160" viewBox="0 0 160 160">
@@ -28,20 +28,43 @@ function ScoreRing({score}){
   );
 }
 
-export default function ATSModal({ resumeId, isNew, onClose }) {
-  const [jobDesc, setJobDesc] = useState("");
-  const [loading, setLoading] = useState(false);
-  const [result, setResult] = useState(null);
+export default function ATSModal({ resumeId, isNew, onClose, onSummaryUpdated }) {
+  const [jobDesc,          setJobDesc]          = useState("");
+  const [loading,          setLoading]          = useState(false);
+  const [updatingSummary,  setUpdatingSummary]  = useState(false);
+  const [result,           setResult]           = useState(null);
+  const [summaryUpdated,   setSummaryUpdated]   = useState(false);
 
   const handleCheck = async () => {
     if (!jobDesc.trim()) return toast.error("Paste a job description first");
     if (isNew) return toast.error("Save your resume before checking ATS");
     setLoading(true);
+    setSummaryUpdated(false);
     try {
       const res = await atsAPI.check({ resumeId, jobDescription: jobDesc });
       setResult(res.data);
     } catch (err) { toast.error(err.message); }
     finally { setLoading(false); }
+  };
+
+  /* ── NEW: AI rewrites summary to match job description ── */
+  const handleUpdateSummary = async () => {
+    if (isNew) return toast.error("Save your resume before updating summary");
+    setUpdatingSummary(true);
+    try {
+      const res = await atsAPI.updateSummary({ resumeId, jobDescription: jobDesc });
+      const newSummary = res.data.summary;
+
+      /* Tell the editor page to update its local resume state */
+      if (onSummaryUpdated) onSummaryUpdated(newSummary);
+
+      setSummaryUpdated(true);
+      toast.success("✦ Summary updated to match the job description!");
+    } catch (err) {
+      toast.error(err.message || "Failed to update summary");
+    } finally {
+      setUpdatingSummary(false);
+    }
   };
 
   return (
@@ -72,6 +95,7 @@ export default function ATSModal({ resumeId, isNew, onClose }) {
 
         <div className="p-8 space-y-6">
           {!result ? (
+            /* ──────────── INPUT STATE ──────────── */
             <>
               <div>
                 <label className="text-xs font-medium tracking-wide uppercase block mb-2" style={{ color: "var(--text-2)" }}>
@@ -100,6 +124,7 @@ export default function ATSModal({ resumeId, isNew, onClose }) {
               </button>
             </>
           ) : (
+            /* ──────────── RESULTS STATE ──────────── */
             <>
               <div className="flex justify-center py-4">
                 <ScoreRing score={result.score} />
@@ -107,11 +132,12 @@ export default function ATSModal({ resumeId, isNew, onClose }) {
 
               <div className="grid grid-cols-3 gap-4">
                 {[
-                  { label: "Matched", value: result.matchedCount, color: "#4ade80" },
-                  { label: "Missing", value: result.missing?.length || 0, color: "#f87171" },
-                  { label: "Analyzed", value: result.totalJobKeywords, color: "var(--text-1)" },
+                  { label: "Matched",  value: result.matchedCount,           color: "#4ade80" },
+                  { label: "Missing",  value: result.missing?.length || 0,   color: "#f87171" },
+                  { label: "Analyzed", value: result.totalJobKeywords,        color: "var(--text-1)" },
                 ].map(s => (
-                  <div key={s.label} className="text-center p-4 rounded-2xl" style={{ background: "rgba(255,255,255,0.02)", border: "1px solid var(--border)" }}>
+                  <div key={s.label} className="text-center p-4 rounded-2xl"
+                    style={{ background: "rgba(255,255,255,0.02)", border: "1px solid var(--border)" }}>
                     <div className="font-display text-3xl font-bold" style={{ color: s.color }}>{s.value}</div>
                     <div className="text-xs mt-0.5" style={{ color: "var(--text-3)" }}>{s.label}</div>
                   </div>
@@ -125,7 +151,7 @@ export default function ATSModal({ resumeId, isNew, onClose }) {
                     <span className="text-xs font-semibold" style={{ color: "#4ade80" }}>Matched Keywords</span>
                   </div>
                   <div className="flex flex-wrap gap-2">
-                    {result.matched.slice(0,20).map(k => (
+                    {result.matched.slice(0, 20).map(k => (
                       <span key={k} className="text-xs px-3 py-1 rounded-full"
                         style={{ background: "rgba(74,222,128,0.08)", border: "1px solid rgba(74,222,128,0.2)", color: "#4ade80" }}>{k}</span>
                     ))}
@@ -154,7 +180,7 @@ export default function ATSModal({ resumeId, isNew, onClose }) {
                     <Sparkles size={13} style={{ color: "var(--gold)" }} />
                     <span className="text-xs font-semibold" style={{ color: "var(--gold)" }}>Suggestions</span>
                   </div>
-                  {result.suggestions.map((s,i) => (
+                  {result.suggestions.map((s, i) => (
                     <p key={i} className="text-xs leading-relaxed flex gap-2 mb-1.5" style={{ color: "var(--text-1)" }}>
                       <span style={{ color: "var(--gold)", flexShrink: 0 }}>›</span> {s}
                     </p>
@@ -162,8 +188,41 @@ export default function ATSModal({ resumeId, isNew, onClose }) {
                 </div>
               )}
 
+              {/* ── NEW: Update Summary button ── */}
+              <div className="rounded-2xl p-5 space-y-3"
+                style={{ background: "rgba(201,168,76,0.05)", border: "1px solid rgba(201,168,76,0.2)" }}>
+                <div className="flex items-center gap-2">
+                  <FileText size={14} style={{ color: "var(--gold)" }} />
+                  <p className="text-sm font-semibold" style={{ color: "var(--text-0)" }}>
+                    Auto-Update Summary
+                  </p>
+                </div>
+                <p className="text-xs leading-relaxed" style={{ color: "var(--text-2)" }}>
+                  Let AI rewrite your professional summary to naturally include the missing keywords from this job description — without adding skills you don't have.
+                </p>
+
+                {summaryUpdated ? (
+                  <div className="flex items-center gap-2 py-2">
+                    <CheckCircle size={15} style={{ color: "#4ade80" }} />
+                    <span className="text-sm" style={{ color: "#4ade80" }}>
+                      Summary updated! Check the Professional Summary section in your editor.
+                    </span>
+                  </div>
+                ) : (
+                  <button
+                    onClick={handleUpdateSummary}
+                    disabled={updatingSummary}
+                    className="btn-primary w-full flex items-center justify-center gap-2 py-3 disabled:opacity-50">
+                    {updatingSummary
+                      ? <><Loader2 size={14} className="animate-spin" /> Rewriting Summary…</>
+                      : <><Sparkles size={14} /> Update Summary for This Job</>}
+                  </button>
+                )}
+              </div>
+
               <div className="flex gap-3 pt-2">
-                <button onClick={() => setResult(null)} className="btn-ghost flex-1 text-sm py-3">Check Again</button>
+                <button onClick={() => { setResult(null); setSummaryUpdated(false); }}
+                  className="btn-ghost flex-1 text-sm py-3">Check Again</button>
                 <button onClick={onClose} className="btn-primary flex-1 text-sm py-3">Close</button>
               </div>
             </>
