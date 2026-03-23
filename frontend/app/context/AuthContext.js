@@ -3,7 +3,7 @@
 import {createContext, useContext, useState, useEffect} from 'react';
 import axios from 'axios';
 
-const API_URL = "https://resumeai-n7od.onrender.com/api";
+const API_URL = "https://resumeai-6y80.onrender.com/api";
 
 axios.defaults.withCredentials = true; // send cookies with every request
 
