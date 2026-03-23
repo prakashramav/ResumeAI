@@ -15,11 +15,11 @@ api.interceptors.request.use((config) => {
 api.interceptors.response.use(
   (res) => res,
   (err) => {
-    const message = err.response?.data?.error || err.message || "Something went wrong";
-    if (err.response?.status === 401 && typeof document !== "undefined") {
-      document.cookie = "auth_token_ref=; expires=Thu, 01 Jan 1970 00:00:00 GMT; path=/";
-      sessionStorage.removeItem("token");
-    }
+    const message =
+      err.response?.data?.error ||
+      err.message ||
+      "Something went wrong";
+
     return Promise.reject(new Error(message));
   }
 );
