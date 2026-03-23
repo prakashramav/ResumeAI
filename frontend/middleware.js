@@ -7,17 +7,14 @@ export function middleware(req) {
   const isAuthPage = pathname.startsWith("/auth");
   const isProtected = pathname.startsWith("/dashboard");
 
-  // 🏠 Landing page logic
   if (pathname === "/" && token) {
     return NextResponse.redirect(new URL("/dashboard", req.url));
   }
 
-  // 🔒 Protect dashboard
   if (isProtected && !token) {
     return NextResponse.redirect(new URL("/auth/login", req.url));
   }
 
-  // 🚫 Block auth pages when logged in
   if (isAuthPage && token) {
     return NextResponse.redirect(new URL("/dashboard", req.url));
   }

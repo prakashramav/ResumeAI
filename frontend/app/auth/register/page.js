@@ -9,7 +9,7 @@ import { useAuth } from "../../context/AuthContext";
 import { useTheme } from "../../context/ThemeContext";
 
 export default function RegisterPage() {
-  const  {register}  = useAuth();
+  const { register } = useAuth();
   const { isDark, toggleTheme } = useTheme();
   const router = useRouter();
   const [form, setForm] = useState({ name: "", email: "", password: "" });
@@ -20,11 +20,11 @@ export default function RegisterPage() {
 
   const strength = () => {
     const l = form.password.length;
-    if (!l)   return { w: "0%",   color: "transparent", label: "" };
-    if (l < 4) return { w: "25%",  color: "#ef4444",      label: "Too short" };
-    if (l < 6) return { w: "50%",  color: "#f97316",      label: "Weak" };
-    if (l < 10) return { w: "75%", color: "#eab308",      label: "Good" };
-    return         { w: "100%", color: "#22c55e",      label: "Strong" };
+    if (!l)    return { w: "0%",   color: "transparent", label: "" };
+    if (l < 4) return { w: "25%",  color: "#ef4444",     label: "Too short" };
+    if (l < 6) return { w: "50%",  color: "#f97316",     label: "Weak" };
+    if (l < 10) return { w: "75%", color: "#eab308",     label: "Good" };
+    return        { w: "100%", color: "#22c55e",     label: "Strong" };
   };
 
   const submit = async e => {
@@ -36,8 +36,11 @@ export default function RegisterPage() {
       await register(form.name, form.email, form.password);
       toast.success("Account created!");
       router.push("/dashboard");
-    } catch (err) { toast.error(err.message); }
-    finally { setLoading(false); }
+    } catch (err) {
+      toast.error(err.message);
+    } finally {
+      setLoading(false);
+    }
   };
 
   const s = strength();
@@ -59,9 +62,9 @@ export default function RegisterPage() {
           </div>
           <div className="space-y-4">
             {[
-              { icon: "✦", title: "AI-Powered Writing",   desc: "GPT rewrites your resume into professional bullet points." },
-              { icon: "◈", title: "ATS Optimization",     desc: "Score your resume against real job descriptions." },
-              { icon: "⬡", title: "3 Premium Templates",  desc: "Modern, Classic, Minimal — polished and recruiter-approved." },
+              { icon: "✦", title: "AI-Powered Writing",  desc: "GPT rewrites your resume into professional bullet points." },
+              { icon: "◈", title: "ATS Optimization",    desc: "Score your resume against real job descriptions." },
+              { icon: "⬡", title: "3 Premium Templates", desc: "Modern, Classic, Minimal — polished and recruiter-approved." },
             ].map(item => (
               <div key={item.title} className="flex items-start gap-3 text-left p-4 rounded-2xl"
                 style={{ background: "rgba(255,255,255,0.02)", border: "1px solid var(--border)" }}>
@@ -102,14 +105,16 @@ export default function RegisterPage() {
               <label className="block text-xs font-medium uppercase tracking-wide mb-1.5" style={{ color: "var(--text-2)" }}>Full Name</label>
               <div className="relative">
                 <User size={15} className="absolute left-3.5 top-1/2 -translate-y-1/2" style={{ color: "var(--text-3)" }} />
-                <input name="name" value={form.name} onChange={set} placeholder="Ramavath Prakash" className="input-field" style={{ paddingLeft: 40 }} />
+                <input name="name" value={form.name} onChange={set}
+                  placeholder="Ramavath Prakash" className="input-field" style={{ paddingLeft: 40 }} />
               </div>
             </div>
             <div>
               <label className="block text-xs font-medium uppercase tracking-wide mb-1.5" style={{ color: "var(--text-2)" }}>Email</label>
               <div className="relative">
                 <Mail size={15} className="absolute left-3.5 top-1/2 -translate-y-1/2" style={{ color: "var(--text-3)" }} />
-                <input name="email" type="email" value={form.email} onChange={set} placeholder="you@example.com" className="input-field" style={{ paddingLeft: 40 }} />
+                <input name="email" type="email" value={form.email} onChange={set}
+                  placeholder="you@example.com" className="input-field" style={{ paddingLeft: 40 }} />
               </div>
             </div>
             <div>
@@ -135,7 +140,10 @@ export default function RegisterPage() {
             </div>
             <button type="submit" disabled={loading} className="btn-primary w-full gap-2 !py-3.5 mt-2">
               {loading
-                ? <span className="flex items-center gap-2"><span className="w-4 h-4 border-2 border-black/30 border-t-black rounded-full animate-spin" />Creating…</span>
+                ? <span className="flex items-center gap-2">
+                    <span className="w-4 h-4 border-2 border-black/30 border-t-black rounded-full animate-spin" />
+                    Creating…
+                  </span>
                 : <>Create Account <ArrowRight size={15} /></>}
             </button>
           </form>

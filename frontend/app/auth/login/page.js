@@ -9,7 +9,7 @@ import { useAuth } from "../../context/AuthContext";
 import { useTheme } from "../../context/ThemeContext";
 
 export default function LoginPage() {
-  const  {login}  = useAuth();
+  const { login } = useAuth();
   const { isDark, toggleTheme } = useTheme();
   const router = useRouter();
   const [form, setForm] = useState({ email: "", password: "" });
@@ -26,8 +26,11 @@ export default function LoginPage() {
       await login(form.email, form.password);
       toast.success("Welcome back!");
       router.push("/dashboard");
-    } catch (err) { toast.error(err.message); }
-    finally { setLoading(false); }
+    } catch (err) {
+      toast.error(err.message);
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -55,7 +58,9 @@ export default function LoginPage() {
           <div className="flex items-center justify-center gap-2 flex-wrap mt-6">
             {["AI-Powered", "ATS-Optimized", "PDF Export"].map(t => (
               <span key={t} className="text-xs px-2.5 py-1 rounded-full"
-                style={{ background: "rgba(201,168,76,0.08)", color: "var(--gold)", border: "1px solid rgba(201,168,76,0.2)" }}>{t}</span>
+                style={{ background: "rgba(201,168,76,0.08)", color: "var(--gold)", border: "1px solid rgba(201,168,76,0.2)" }}>
+                {t}
+              </span>
             ))}
           </div>
         </div>
@@ -98,14 +103,18 @@ export default function LoginPage() {
                 <input name="password" type={showPass ? "text" : "password"} value={form.password} onChange={set}
                   placeholder="••••••••" className="input-field" style={{ paddingLeft: 40, paddingRight: 44 }} />
                 <button type="button" onClick={() => setShowPass(!showPass)}
-                  className="absolute right-3.5 top-1/2 -translate-y-1/2" style={{ color: "var(--text-3)", background: "none", border: "none", cursor: "pointer" }}>
+                  className="absolute right-3.5 top-1/2 -translate-y-1/2"
+                  style={{ color: "var(--text-3)", background: "none", border: "none", cursor: "pointer" }}>
                   {showPass ? <EyeOff size={15} /> : <Eye size={15} />}
                 </button>
               </div>
             </div>
             <button type="submit" disabled={loading} className="btn-primary w-full gap-2 !py-3.5 mt-2">
               {loading
-                ? <span className="flex items-center gap-2"><span className="w-4 h-4 border-2 border-black/30 border-t-black rounded-full animate-spin" />Signing in…</span>
+                ? <span className="flex items-center gap-2">
+                    <span className="w-4 h-4 border-2 border-black/30 border-t-black rounded-full animate-spin" />
+                    Signing in…
+                  </span>
                 : <>Sign In <ArrowRight size={15} /></>}
             </button>
           </form>
