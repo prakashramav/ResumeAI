@@ -44,6 +44,7 @@ export function AuthProvider({ children}){
     setUser(res.data.user);
     return res.data.user;
   } catch (err) {
+    console.error("Registration error:", err);
     throw new Error(err.response?.data?.error || "Registration failed");
   }
 };
