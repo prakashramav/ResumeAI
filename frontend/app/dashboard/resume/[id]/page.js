@@ -736,7 +736,21 @@ export default function ResumeEditorPage() {
         </div>
       </main>
 
-      {showATS && <ATSModal resumeId={params.id} isNew={isNew} onClose={() => setShowATS(false)} />}
+      {showATS && (
+        <ATSModal
+          resumeId={params.id}
+          isNew={isNew}
+          onClose={() => setShowATS(false)}
+          onSummaryUpdated={(newSummary) => {
+            setField("summary", newSummary);
+            setOpen(p => ({ ...p, summary: true }));
+          }}
+          onProjectsUpdated={(updatedProjects) => {
+            setField("projects", updatedProjects);
+            setOpen(p => ({ ...p, projects: true }));
+          }}
+        />
+      )}
     </div>
   );
 }
