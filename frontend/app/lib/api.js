@@ -29,12 +29,12 @@ api.interceptors.response.use(
 );
 
 export const resumeAPI = {
-  getAll:    (params)     => api.get("/resumes", { params }),
-  getById:   (id)         => api.get(`/resumes/${id}`),
-  create:    (data)       => api.post("/resumes", data),
-  update:    (id, data)   => api.put(`/resumes/${id}`, data),
-  delete:    (id)         => api.delete(`/resumes/${id}`),
-  download:  (id)         => api.get(`/resumes/${id}/download`, { responseType: "blob" }),
+  getAll:    (params)   => api.get("/resumes", { params }),
+  getById:   (id)       => api.get(`/resumes/${id}`),
+  create:    (data)     => api.post("/resumes", data),
+  update:    (id, data) => api.put(`/resumes/${id}`, data),
+  delete:    (id)       => api.delete(`/resumes/${id}`),
+  download:  (id)       => api.get(`/resumes/${id}/download`, { responseType: "blob" }),
 };
 
 export const aiAPI = {
@@ -45,8 +45,9 @@ export const aiAPI = {
 };
 
 export const atsAPI = {
-  check:         (data) => api.post("/ats/check", data),
-  updateSummary: (data) => api.post("/ats/update-summary", data),  // ← NEW
+  check:          (data) => api.post("/ats/check", data),
+  updateSummary:  (data) => api.post("/ats/update-summary", data),
+  updateProjects: (data) => api.post("/ats/update-projects", data), // ← NEW
 };
 
 export const interviewAPI = {
