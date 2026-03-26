@@ -155,6 +155,9 @@ export default function InterviewPrepPage() {
     if (!title && !skills.length) {
       return toast.error("Select a resume or enter a job title / skills");
     }
+    if (skills.length < 2 && !title) {
+      return toast.error("Add at least 2 valid skills or a job title");
+    }
 
     setGenerating(true);
     setQuestions(null);
@@ -175,6 +178,8 @@ export default function InterviewPrepPage() {
       setGenerating(false);
     }
   };
+  console.log(questions)
+  console.log(meta)
 
   const totalQuestions = questions ? Object.values(questions).flat().length : 0;
 
@@ -347,7 +352,7 @@ export default function InterviewPrepPage() {
 
             {/* Question categories */}
             {Object.entries(CATEGORY_META).map(([key]) => (
-              <CategorySection key={key} categoryKey={key} questions={questions[key]}/>
+              <CategorySection key={key} categoryKey={key} questions={questions?.[key]}/>
             ))}
 
             {/* Tips footer */}

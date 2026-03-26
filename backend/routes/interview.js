@@ -5,7 +5,7 @@ const { GoogleGenerativeAI } = require("@google/generative-ai");
 
 require("dotenv").config();
 const auth = require("../middleware/auth");
-
+const { TECH_KEYWORDS } = require("../utils/constant");
 const router = express.Router();
 
 // const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
@@ -21,107 +21,103 @@ const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
 const model = genAI.getGenerativeModel({
   model: "gemini-2.5-flash"  
 });
+function filterValidSkills(skillsArray) {
+  if (!Array.isArray(skillsArray)) return [];
+  return skillsArray
+    .map(skill => skill.trim())
+    .filter(skill => skill.length > 1);
+}
 
 // POST generate Interview questions to an user
 router.post("/generate", auth, async (req, res) => {
   try {
-    const { title, skills, experience, difficulty = "medium" } = req.body;
- 
-    if (!title && !skills?.length) {
-      return res.status(400).json({ error: "Provide a job title or at least one skill" });
+    let { title, skills, experience, difficulty = "medium" } = req.body;
+
+    const validSkills = filterValidSkills(skills || []);
+
+    if (validSkills.length === 0) {
+      return res.status(400).json({
+        error: "Please enter technologies like React, Node.js, or Python."
+      });
     }
- 
-    const expLevel =
-      experience && experience.length > 0
-        ? "experienced candidate"
-        : "fresher / student";
- 
-    const prompt = `You are an expert technical interviewer. Generate interview questions for a candidate.
- 
-Role/Title: ${title || "Software Developer"}
-Skills: ${skills?.join(", ") || "general programming"}
-Experience Level: ${expLevel}
-Difficulty: ${difficulty}
- 
-Generate EXACTLY this JSON structure (no markdown, no extra text, no trailing commas):
-{
-  "technical": [
-    { "question": "...", "hint": "...", "category": "..." },
-    { "question": "...", "hint": "...", "category": "..." },
-    { "question": "...", "hint": "...", "category": "..." },
-    { "question": "...", "hint": "...", "category": "..." },
-    { "question": "...", "hint": "...", "category": "..." },
-    { "question": "...", "hint": "...", "category": "..." }
-  ],
-  "behavioral": [
-    { "question": "...", "hint": "..." },
-    { "question": "...", "hint": "..." },
-    { "question": "...", "hint": "..." },
-    { "question": "...", "hint": "..." }
-  ],
-  "projectBased": [
-    { "question": "...", "hint": "..." },
-    { "question": "...", "hint": "..." },
-    { "question": "...", "hint": "..." },
-    { "question": "...", "hint": "..." }
-  ],
-  "hr": [
-    { "question": "...", "hint": "..." },
-    { "question": "...", "hint": "..." },
-    { "question": "...", "hint": "..." },
-    { "question": "...", "hint": "..." }
-  ]
-}
- 
-Rules:
-- technical: EXACTLY 6 questions specific to the skills listed. Include category (e.g. "React", "Node.js", "System Design")
-- behavioral: EXACTLY 4 STAR-method questions (Situation, Task, Action, Result format)
-- projectBased: EXACTLY 4 questions about explaining or defending their projects
-- hr: EXACTLY 4 standard HR questions (salary, strengths, weaknesses, goals)
-- Each hint must be a single sentence tip on how to answer well
-- Make technical questions appropriately challenging for ${difficulty} level
-- CRITICAL: Output ONLY valid JSON — no trailing commas, no comments, no markdown backticks`;
- 
+
+    const expLevel = experience && experience.length > 0
+      ? "an experienced candidate"
+      : "a fresher with project-based experience";
+
+    const prompt = `
+      You are a Senior Technical Interviewer.
+
+      STRICT RULES:
+      1. Return ONLY a valid JSON object. No markdown, no explanation.
+      2. Only generate questions if the skills listed are real technologies, tools, or programming concepts.
+      3. If the input contains non-technical gibberish (e.g. "asdfjkl", "hello", "iloveyou"), return this exact JSON:
+        { "error": "invalid_skills" }
+
+      FORMAT (when skills are valid):
+      {
+        "technical": [
+          { "question": "text", "hint": "Key points to cover", "category": "technical" }
+        ],
+        "behavioral": [
+          { "question": "text", "hint": "Key points to cover", "category": "behavioral" }
+        ],
+        "projectBased": [
+          { "question": "text", "hint": "Key points to cover", "category": "projectBased" }
+        ],
+        "hr": [
+          { "question": "text", "hint": "Key points to cover", "category": "hr" }
+        ]
+      }
+
+      Role: ${title || "Software Developer"}
+      Skills: ${validSkills.join(", ")}
+      Experience Level: ${expLevel}
+      Difficulty: ${difficulty}
+
+      Generate 3-4 questions per category.
+    `;
+
     const result = await model.generateContent(prompt);
     const text = result.response.text();
- 
-    let questions;
+
+    console.log("AI RAW RESPONSE:", text);
+
+    let questions = [];
     try {
-      const cleanText = text
-        .replace(/```json|```/g, "")  // remove markdown code blocks
-        .trim()
-        .replace(/,(\s*[}\]])/g, "$1"); // remove ALL trailing commas before } or ]
- 
-      questions = JSON.parse(cleanText);
-    } catch (err) {
-      console.error("Gemini JSON parse error:", text);
- 
-      // Second attempt — more aggressive cleaning
-      try {
-        const aggressiveClean = text
-          .replace(/```json|```/g, "")
-          .trim()
-          .replace(/,(\s*[}\]])/g, "$1")  // trailing commas
-          .replace(/([{,]\s*)(\w+):/g, '$1"$2":')  // unquoted keys
-          .replace(/:\s*'([^']*)'/g, ': "$1"');     // single quotes to double
- 
-        questions = JSON.parse(aggressiveClean);
-      } catch (err2) {
-        console.error("Second parse attempt failed:", err2.message);
-        return res.status(500).json({ error: "AI returned invalid format. Please try again." });
+      const cleanText = text.replace(/```json|```/g, "").trim();
+      const jsonMatch = cleanText.match(/\{[\s\S]*\}/);
+
+      if (!jsonMatch) {
+        throw new Error("No valid JSON found");
       }
+
+      questions = JSON.parse(jsonMatch[0]);
+
+      
+      if (questions.error === "invalid_skills") {
+        return res.status(400).json({
+          error: "Please enter valid technologies like React, Node.js, or Python."
+        });
+      }
+
+    } catch (parseError) {
+      console.error("JSON Parse Error:", parseError.message);
+      return res.status(500).json({
+        error: "AI returned invalid format. Try again."
+      });
     }
- 
-    // Validate structure — ensure all 4 categories exist
-    if (!questions.technical || !questions.behavioral || !questions.projectBased || !questions.hr) {
-      return res.status(500).json({ error: "AI returned incomplete format. Please try again." });
-    }
- 
-    res.json({ questions, title, skills, difficulty });
- 
+
+    res.json({
+      questions,
+      title,
+      skills: validSkills,
+      difficulty
+    });
+
   } catch (err) {
-    console.error("Interview generate error:", err.message);
-    res.status(500).json({ error: "Failed to generate questions. Try again later." });
+    console.error("Interview Gen Error:", err);
+    res.status(500).json({ error: "Failed to generate valid technical questions." });
   }
 });
  

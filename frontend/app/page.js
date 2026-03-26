@@ -20,7 +20,6 @@ const STEPS = [
   { num: "04", title: "Download & Apply",     desc: "Export a polished PDF and land the interview." },
 ];
 
-/* ── useInView: triggers when element enters viewport ── */
 function useInView(threshold = 0.15) {
   const ref = useRef(null);
   const [visible, setVisible] = useState(false);
@@ -37,7 +36,6 @@ function useInView(threshold = 0.15) {
   return [ref, visible];
 }
 
-/* ── Animated wrapper ── */
 function Reveal({ children, delay = 0, direction = "up", className = "" }) {
   const [ref, visible] = useInView();
   const transforms = { up: "translateY(32px)", down: "translateY(-32px)", left: "translateX(-32px)", right: "translateX(32px)" };
@@ -52,7 +50,7 @@ function Reveal({ children, delay = 0, direction = "up", className = "" }) {
   );
 }
 
-/* ── Counter animation ── */
+
 function Counter({ target, suffix = "" }) {
   const [count, setCount] = useState(0);
   const [ref, visible] = useInView(0.5);
@@ -88,7 +86,7 @@ export default function LandingPage() {
   return (
     <div className="min-h-screen overflow-x-hidden" style={{ background: "var(--bg-0)", color: "var(--text-0)", fontFamily: "'Inter', sans-serif" }}>
 
-      {/* ══ NAVBAR ══ */}
+      {/* Navigation Bar */}
       <nav className="fixed top-0 left-0 right-0 z-50"
         style={{
           padding: scrolled ? "10px 0" : "18px 0",
@@ -140,7 +138,7 @@ export default function LandingPage() {
 
       {/* ══ HERO ══ */}
       <section className="relative min-h-screen flex items-center justify-center px-6 pt-24 pb-16">
-        {/* Background grid */}
+        
         <div className="absolute inset-0 radial-glow pointer-events-none" />
         <div className="absolute inset-0 pointer-events-none" style={{
           backgroundImage: "linear-gradient(rgba(201,168,76,0.04) 1px, transparent 1px), linear-gradient(90deg, rgba(201,168,76,0.04) 1px, transparent 1px)",
@@ -149,7 +147,7 @@ export default function LandingPage() {
           WebkitMaskImage: "radial-gradient(ellipse 80% 70% at 50% 40%, black 30%, transparent 80%)",
         }} />
 
-        {/* Orbital rings */}
+        
         <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 pointer-events-none">
           <div className="anim-spin-slow" style={{
             width: 600, height: 600, borderRadius: "50%",
@@ -165,7 +163,6 @@ export default function LandingPage() {
           }} />
         </div>
 
-        {/* Hero text */}
         <div className="relative z-10 max-w-4xl mx-auto text-center">
 
           {/* Badge */}
@@ -249,7 +246,7 @@ export default function LandingPage() {
         </div>
       </section>
 
-      {/* ══ HOW IT WORKS ══ */}
+      {/*  HOW IT WORKS*/}
       <section className="py-28 px-6">
         <div className="max-w-5xl mx-auto">
           <Reveal className="text-center mb-16">
@@ -379,7 +376,7 @@ export default function LandingPage() {
         </div>
       </section>
 
-      {/* ══ FOOTER ══ */}
+      {/* FOOTER */}
       <footer className="py-10 px-6" style={{ borderTop: "1px solid var(--border)" }}>
         <Reveal>
           <div className="max-w-6xl mx-auto flex flex-col md:flex-row items-center justify-between gap-4">
