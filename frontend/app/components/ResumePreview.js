@@ -36,9 +36,9 @@ function TechChips({ techs, bg = "#f3f4f6", border = "#e5e7eb", color = "#374151
   );
 }
 
-/* ═══════════════════════════════════════
+/* 
    MODERN TEMPLATE
-═══════════════════════════════════════ */
+*/
 function ModernTemplate({ resume }) {
   const { personalInfo: pi = {}, role, summary, skills = [], experience = [], education = [], projects = [] } = resume;
 
@@ -67,7 +67,7 @@ function ModernTemplate({ resume }) {
         </div>
       </div>
 
-      {/* 2-col body */}
+      
       <div style={{ display: "grid", gridTemplateColumns: "210px 1fr", minHeight: 900 }}>
 
         {/* Left */}
@@ -153,21 +153,21 @@ function ModernTemplate({ resume }) {
   );
 }
 
-/* ═══════════════════════════════════════
+/* 
    CLASSIC TEMPLATE
-═══════════════════════════════════════ */
+*/
 function ClassicTemplate({ resume }) {
   const { personalInfo: pi = {}, role, summary, skills = [], experience = [], education = [], projects = [] } = resume;
 
   return (
     <div style={{ ...S.page, padding: "44px 52px" }}>
-      {/* Header */}
+      
       <div style={{ textAlign: "center", marginBottom: 18, paddingBottom: 14, borderBottom: "2px solid #111" }}>
         <div style={{ fontSize: 28, fontWeight: 700, letterSpacing: -0.3, marginBottom: 4 }}>
           {pi.name || "Your Name"}
         </div>
 
-        {/* Role / target job title */}
+        
         {role && (
           <div style={{ fontSize: 12, color: "#555", marginBottom: 8, fontStyle: "italic", letterSpacing: 0.5 }}>
             {role}
@@ -255,23 +255,23 @@ function ClassicTemplate({ resume }) {
   );
 }
 
-/* ═══════════════════════════════════════
+/* 
    MINIMAL TEMPLATE
-═══════════════════════════════════════ */
+ */
 function MinimalTemplate({ resume }) {
   const { personalInfo: pi = {}, role, summary, skills = [], experience = [], education = [], projects = [] } = resume;
   const ACCENT = "#2563eb";
 
   return (
     <div style={{ ...S.page, padding: "40px 48px" }}>
-      {/* Header */}
+      
       <div style={{ marginBottom: 28 }}>
         <div style={{ fontSize: 30, fontWeight: 300, letterSpacing: 3, textTransform: "uppercase", color: "#111", marginBottom: 6 }}>
           {pi.name || "YOUR NAME"}
         </div>
         <div style={{ height: 2, background: ACCENT, width: 64, marginBottom: 10 }} />
 
-        {/* Role / target job title */}
+        
         {role && (
           <div style={{ fontSize: 12, color: ACCENT, marginBottom: 10, fontWeight: 500, letterSpacing: 0.8, textTransform: "uppercase" }}>
             {role}
@@ -352,7 +352,7 @@ function MinimalTemplate({ resume }) {
             <div key={i} style={{ paddingLeft: 14, borderLeft: "2px solid #e5e7eb", marginBottom: 16 }}>
               <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start" }}>
                 <div style={{ fontWeight: 600, fontSize: 11, color: "#111" }}>{p.title || "Untitled Project"}</div>
-                {/* Show actual URLs, not label text */}
+                
                 <div style={{ display: "flex", flexDirection: "column", alignItems: "flex-end", gap: 2, fontSize: 8.5, marginLeft: 8 }}>
                   {p.link   && (
                     <span style={{ color: ACCENT, wordBreak: "break-all", maxWidth: 200, textAlign: "right" }}>
@@ -366,7 +366,7 @@ function MinimalTemplate({ resume }) {
                   )}
                 </div>
               </div>
-              {/* Tech chips */}
+              
               {p.technologies?.length > 0 && (
                 <TechChips
                   techs={p.technologies}
@@ -384,9 +384,9 @@ function MinimalTemplate({ resume }) {
   );
 }
 
-/* ═══════════════════════════════════════
-   SHARED SECTION COMPONENTS
-═══════════════════════════════════════ */
+/* 
+   Shared Section Components
+ */
 function Section({ title, accent = "#374151", children }) {
   return (
     <div style={{ marginBottom: 20 }}>
@@ -422,9 +422,9 @@ function MinimalSection({ title, accent, children }) {
   );
 }
 
-/* ═══════════════════════════════════════
+/* 
    EXPORT
-═══════════════════════════════════════ */
+*/
 export default function ResumePreview({ resume }) {
   if (!resume) return null;
   if (resume.template === "classic") return <ClassicTemplate resume={resume} />;

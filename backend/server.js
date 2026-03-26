@@ -15,7 +15,10 @@ connectDB();
 const app = express()
 
 const PORT = process.env.PORT || 5000
-app.set("trust proxy", 1); // trust first proxy
+
+app.set("trust proxy", 1); 
+
+
 const limiter = rateLimit({
     windowMs: 15 * 60 * 1000, // 15 minutes
     max: 100, // limit each IP to 100 requests per windowMs
@@ -53,11 +56,11 @@ app.get('/', (req,res) => {
 })
 
 // error handling middleware
+
 app.use((err, _req, res, _next) => {
   console.error(err.stack);
   res.status(err.status || 500).json({ error: err.message || "Internal server error" });
 });
-
 
 app.listen(PORT, () => {
     console.log(`Server is running on http://localhost:${PORT}`)

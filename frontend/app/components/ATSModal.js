@@ -56,7 +56,7 @@ export default function ATSModal({ resumeId, isNew, onClose, onSummaryUpdated, o
     setUpdatingSummary(true);
     try {
       const res = await atsAPI.updateSummary({ resumeId, jobDescription: jobDesc });
-      // Pass new summary directly to editor — NO page refresh needed
+      
       if (onSummaryUpdated) onSummaryUpdated(res.data.summary);
       setSummaryDone(true);
       toast.success("✦ Summary updated! Hit Save to keep changes.");
@@ -73,8 +73,8 @@ export default function ATSModal({ resumeId, isNew, onClose, onSummaryUpdated, o
     setUpdatingProjects(true);
     try {
       const res = await atsAPI.updateProjects({ resumeId, jobDescription: jobDesc });
-      // Pass updated projects directly to editor — NO page refresh needed
-      if (onProjectsUpdated) onProjectsUpdated(res.data.projects);
+      
+      if (onProjectsUpdated) onProjectsUpdated(res.data.projects); // Pass updated projects directly to editor — NO page refresh needed
       setProjectsDone(true);
       toast.success("✦ Project bullets rewritten! Hit Save to keep changes.");
     } catch (err) {
@@ -118,7 +118,7 @@ export default function ATSModal({ resumeId, isNew, onClose, onSummaryUpdated, o
 
         <div className="p-8 space-y-6">
 
-          {/* ════ INPUT STATE ════ */}
+          {/* INPUT STATE  */}
           {!result ? (
             <>
               <div>
@@ -154,7 +154,7 @@ export default function ATSModal({ resumeId, isNew, onClose, onSummaryUpdated, o
             </>
           ) : (
 
-          /* ════ RESULTS STATE ════ */
+          /*  RESULTS STATE */
           <>
             <div className="flex justify-center py-4">
               <ScoreRing score={result.score} />
@@ -247,13 +247,13 @@ export default function ATSModal({ resumeId, isNew, onClose, onSummaryUpdated, o
               </div>
             )}
 
-            {/* ════ AI FIX SECTION ════
+            {/*
                 Score < 75  → Show "Update Summary"
                 Score >= 75 → Show "Rewrite Project Bullets"
-            ════════════════════════════ */}
+             */}
 
             {result.score < 75 ? (
-              /* ── Update Summary (score < 75) ── */
+              
               <div className="rounded-2xl p-5 space-y-3"
                 style={{ background: "rgba(248,113,113,0.04)", border: "1px solid rgba(248,113,113,0.2)" }}>
                 <div className="flex items-center gap-2">

@@ -225,15 +225,63 @@ export default function ResumeEditorPage() {
         });
         setField("summary", res.data.enhanced);
         toast.success("✦ Summary enhanced!");
-      } else if (type.startsWith("proj-")) {
+      }else if (type.startsWith("proj-")) {
         const idx = parseInt(type.split("-")[1]);
-        res = await aiAPI.enhanceProject(resume.projects[idx]);
-        setField("projects", updArr(resume.projects, idx, "description", res.data.enhanced));
+
+        const project = resume.projects[idx]; 
+
+        
+        if (!project.description && !project.github) {
+          toast.error("Add description or GitHub link");
+          return;
+        }
+
+        const res = await aiAPI.enhanceProject({
+          title: project.title,                  
+          description: project.description || "",
+          technologies: project.technologies || [],
+          githubUrl: project.github || ""        
+        });
+
+        setField(
+          "projects",
+          updArr(resume.projects, idx, "description", res.data.enhanced)
+        );
+
         toast.success("✦ Project enhanced!");
-      } else if (type.startsWith("exp-")) {
+      }else if (type.startsWith("exp-")) {
         const idx = parseInt(type.split("-")[1]);
-        res = await aiAPI.enhanceExperience(resume.experience[idx]);
-        setField("experience", updArr(resume.experience, idx, "description", res.data.enhanced));
+        const exp = resume.experience[idx];
+
+        
+        const position = exp.position?.trim() || "";
+        const company = exp.company?.trim() || "";
+
+        console.log("Position:", position);
+        console.log("Company:", company);
+
+        
+        if (position.length < 3) {
+          toast.error("Enter valid job title");
+          return;
+        }
+
+        if (company.length < 2) {
+          toast.error("Enter company name");
+          return;
+        }
+
+        const res = await aiAPI.enhanceExperience({
+          position,
+          company,
+          description: exp.description || ""
+        });
+
+        setField(
+          "experience",
+          updArr(resume.experience, idx, "description", res.data.enhanced)
+        );
+
         toast.success("✦ Experience enhanced!");
       }
     } catch (err) { toast.error(err.message || "AI failed"); }
@@ -262,11 +310,9 @@ export default function ResumeEditorPage() {
     <div className="min-h-screen" style={{ background:"var(--bg-0)", color:"var(--text-0)" }}>
       <Navbar />
 
-      {/* ══════════════════════════════════════
-          STICKY TOOLBAR
-          Mobile  (<768px): [←] [Title+Role]  [👁] [💾] [⋮]
-          Desktop (≥768px): [←] [Title+Role]  [ATS] [Preview] [PDF] [Save]
-      ══════════════════════════════════════ */}
+      {/* 
+          Mobile  (<768px): 
+          Desktop (≥768px): */}
       <div className="fixed top-16 left-0 right-0 z-40 h-14"
         style={{
           background: "var(--navbar-bg)",
@@ -375,9 +421,8 @@ export default function ResumeEditorPage() {
         </div>
       </div>
 
-      {/* ══════════════════════════════════════
-          MOBILE / TABLET FULLSCREEN PREVIEW
-      ══════════════════════════════════════ */}
+      {/*
+          MOBILE / TABLET FULLSCREEN PREVIEW */}
       {showPreview && (
         <div className="fixed inset-0 z-50 lg:hidden flex flex-col" style={{ background:"var(--bg-0)" }}>
           <div className="flex items-center justify-between px-4 h-14 flex-shrink-0"
@@ -428,13 +473,13 @@ export default function ResumeEditorPage() {
         </div>
       )}
 
-      {/* ══════════════════════════════════════
+      {/* 
           MAIN CONTENT
-      ══════════════════════════════════════ */}
+      */}
       <main className="pt-32 pb-24 px-3 md:px-6">
         <div className="max-w-7xl mx-auto flex gap-6 items-start">
 
-          {/* ════ EDITOR PANEL ════ */}
+          {/* EDITOR PANEL*/}
           <div className="flex-1 min-w-0 space-y-3">
 
             {/* Resume Identity */}
@@ -699,7 +744,7 @@ export default function ResumeEditorPage() {
 
           </div>
 
-          {/* ════ DESKTOP SIDE PREVIEW (lg only) ════ */}
+          {/* DESKTOP SIDE PREVIEW (lg only) */}
           {showPreview && (
             <div className="hidden lg:flex flex-col flex-shrink-0" style={{ width: 420, marginRight: 16 }}>
               <div className="sticky top-32">

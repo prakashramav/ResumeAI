@@ -3,7 +3,6 @@
 import { createContext, useContext, useState, useEffect } from 'react';
 import axios from 'axios';
 
-// Use relative URL — works both locally and in production
 const API_URL = "/api";
 
 axios.defaults.withCredentials = true;

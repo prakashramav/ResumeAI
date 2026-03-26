@@ -3,12 +3,12 @@ const auth = require('../middleware/auth');
 const Resume = require('../models/Resume');
 const { GoogleGenerativeAI } = require("@google/generative-ai");
 require('dotenv').config();
-
+const {  TECH_KEYWORDS} = require("../utils/constant");
 const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
 const model = genAI.getGenerativeModel({
   model: "gemini-2.5-flash-lite",
   generationConfig: {
-    temperature: 0,  // no randomness = consistent score
+    temperature: 0,  
     topP: 1,
     topK: 1,
   }
@@ -21,70 +21,6 @@ const modelFallback = genAI.getGenerativeModel({
 
 const router = express.Router();
 
-const TECH_KEYWORDS = new Set([
-  // ── Web Frontend ──
-  "react","angular","vue","nextjs","nuxtjs","svelte","html","css","javascript",
-  "typescript","tailwind","bootstrap","sass","scss","webpack","vite","redux",
-  "contextapi","zustand","css-in-js","styled-components","framer","motion",
-  "responsive","accessibility","pwa","spa","ssr","seo",
-
-  // ── Web Backend ──
-  "node","nodejs","express","nestjs","fastapi","django","flask","spring",
-  "laravel","rails","graphql","restful","api","apis","microservices","websocket",
-  "authentication","authorization","jwt","oauth","middleware","serverless",
-
-  // ── Databases ──
-  "mongodb","postgresql","mysql","sqlite","redis","firebase","supabase",
-  "dynamodb","cassandra","elasticsearch","prisma","mongoose","sequelize","orm",
-  "sql","nosql","database","schema","query","indexing","migration",
-
-  // ── AI / ML / Data Science ──
-  "python","tensorflow","pytorch","keras","scikit-learn","sklearn","numpy",
-  "pandas","matplotlib","seaborn","jupyter","nlp","computer-vision","cv",
-  "deep-learning","machine-learning","neural-network","transformers","bert",
-  "llm","generative","ai","artificial-intelligence","reinforcement-learning",
-  "feature-engineering","model","training","inference","deployment","mlops",
-  "huggingface","openai","langchain","rag","embeddings","vectordb","pinecone",
-
-  // ── Data Analytics / BI ──
-  "sql","tableau","powerbi","looker","excel","data-analysis","analytics",
-  "visualization","dashboard","etl","pipeline","airflow","spark","hadoop",
-  "hive","kafka","dbt","snowflake","bigquery","redshift","data-warehouse",
-  "statistics","hypothesis","regression","classification","clustering","a/b",
-
-  // ── DevOps / Cloud ──
-  "docker","kubernetes","jenkins","github-actions","gitlab-ci","circleci",
-  "terraform","ansible","helm","nginx","linux","bash","shell","ci/cd","cicd",
-  "aws","azure","gcp","cloud","s3","ec2","lambda","cloudfront","iam",
-  "monitoring","logging","prometheus","grafana","elk","datadog","sentry",
-  "infrastructure","deployment","scaling","load-balancer","microservices",
-
-  // ── Mobile ──
-  "react-native","flutter","swift","kotlin","android","ios","expo","xcode",
-  "mobile","app","native","cross-platform",
-
-  // ── General Programming ──
-  "java","c++","c#","golang","go","rust","php","ruby","scala","kotlin",
-  "git","github","gitlab","bitbucket","agile","scrum","jira","linux",
-  "algorithms","data-structures","oop","functional","solid","design-patterns",
-  "testing","jest","pytest","junit","mocha","cypress","selenium","tdd","bdd",
-  "code-review","reviews","documentation","debugging","performance",
-
-  // ── Cybersecurity ──
-  "security","encryption","ssl","tls","penetration","vulnerability","firewall",
-  "oauth","sso","compliance","gdpr","owasp","zero-trust",
-
-  // ── Soft / Universal Keywords ──
-  "scalable","modular","secure","clean","reusable","maintainable","documented",
-  "asynchronous","optimization","architecture","stability","quality","agile",
-  "collaborate","communication","problem-solving","analytical","leadership",
-  "fullstack","full-stack","frontend","backend","engineer","developer",
-  "solutions","driven","build","deploy","integrate","design","implement",
-  "web","applications","development","frameworks","systems","platform",
-  "assurance","planning","code","testing","research","analysis","model",
-]);
-
-
 const STOP_WORDS = new Set([
   // Original
   "a","an","the","and","or","but","in","on","at","to","for",
@@ -94,7 +30,7 @@ const STOP_WORDS = new Set([
   "used","able","i","we","you","he","she","it","they","me",
   "him","her","us","them","my","your","his","its","our","their",
 
-  // ← ADD THESE — common words that pollute ATS results
+  // common words that pollute ATS results
   "this","that","these","those","what","which","who","whom",
   "when","where","why","how","all","each","every","both",
   "few","more","most","other","some","such","no","not","only",
@@ -105,7 +41,7 @@ const STOP_WORDS = new Set([
   "across","within","well","also","new","use","get","like",
   "including","based","per","over","up","out","as","if","any",
 
-  // ← ADD THESE — common words that pollute ATS results
+  //common words that pollute ATS results
     "contract","job","opportunity","global","assignments","hours",
     "passionate","industry","developers","developer","clients","client",
     "company","companies","salary","competitive","remote","contractual",
@@ -122,13 +58,12 @@ const STOP_WORDS = new Set([
 
 
 function stemWord(word) {
-  if (word.length < 4) return word; // don't stem short words
+  if (word.length < 4) return word; 
 
-  // Only strip endings that produce valid root words
   if (word.endsWith("ing")   && word.length > 6)  return word.slice(0, -3);
-  if (word.endsWith("tion")  && word.length > 6)  return word.slice(0, -3); // authentication → authenticat
-  if (word.endsWith("ment")  && word.length > 6)  return word.slice(0, -4); // deployment → deploy (keep as is)
-  if (word.endsWith("ity")   && word.length > 5)  return word.slice(0, -3); // security → secur
+  if (word.endsWith("tion")  && word.length > 6)  return word.slice(0, -3); 
+  if (word.endsWith("ment")  && word.length > 6)  return word.slice(0, -4); 
+  if (word.endsWith("ity")   && word.length > 5)  return word.slice(0, -3); 
   if (word.endsWith("ies")   && word.length > 4)  return word.slice(0, -3) + "y";
   if (word.endsWith("ed")    && word.length > 4)  return word.slice(0, -2);
   if (word.endsWith("er")    && word.length > 4)  return word.slice(0, -2);
@@ -161,8 +96,6 @@ function calculateAtsScore(resumeText, jobText) {
   const jobFreq    = getKeywordFrequency(jobWords);
   const resumeFreq = getKeywordFrequency(resumeWords);
 
-  // ONLY pick tech keywords from job description
-  // Fall back to frequent non-stop words if not enough tech keywords found
   const techFromJob = Object.entries(jobFreq)
     .filter(([word]) => TECH_KEYWORDS.has(word))
     .sort((a, b) => b[1] - a[1])
@@ -177,7 +110,7 @@ function calculateAtsScore(resumeText, jobText) {
   const sortedJobKeywords = [
     ...techFromJob,
     ...nonTechFromJob,
-  ].slice(0, 30);
+  ].slice(0, 40);
 
   console.log("Tech keywords from JD:", techFromJob);
   console.log("Total keywords used:", sortedJobKeywords.length);
@@ -189,27 +122,32 @@ function calculateAtsScore(resumeText, jobText) {
     else missing.push(keyword);
   });
 
-  const score = sortedJobKeywords.length
-    ? Math.round((matched.length / sortedJobKeywords.length) * 100)
+  const totalKeywords = sortedJobKeywords.length;
+  const score = totalKeywords > 0
+    ? Math.round((matched.length / totalKeywords) * 100)
     : 0;
 
   return {
     score: Math.min(score, 100),
     matched,
     missing: missing.slice(0, 15),
-    totalJobKeywords: sortedJobKeywords.length,
+    totalJobKeywords: totalKeywords,
     matchedCount: matched.length,
   };
 }
 
 
 function buildResumeText(resume) {
+  const safeSkills = Array.isArray(resume.skills) ? resume.skills : [];
+  
   return [
-    (resume.skills?.map(s => s.toLowerCase()).join(" ") + " ").repeat(5),
+    
+    (safeSkills.map(s => String(s).toLowerCase()).join(" ") + " ").repeat(5),
     resume.summary?.toLowerCase() || "",
-    resume.projects?.map(p =>
-      `${p.title} ${p.description} ${p.technologies?.map(t => t.toLowerCase()).join(" ") || ""}`
-    ).join(" ").toLowerCase() || "",
+    resume.projects?.map(p => {
+      const pTech = Array.isArray(p.technologies) ? p.technologies.join(" ") : "";
+      return `${p.title} ${p.description} ${p.technologies?.join(" ") || ""}`;
+    }).join(" ").toLowerCase() || "",
     resume.experience?.map(e =>
       `${e.position} ${e.company} ${e.description}`
     ).join(" ").toLowerCase() || "",
@@ -246,18 +184,22 @@ async function aiAtsAnalysis(resumeText, jobDescription) {
     `;
     let result;
     try {
-      result = await model.generateContent(prompt); // try lite first
+      result = await model.generateContent(prompt); 
     } catch (err) {
       if (err.status === 429) {
         console.log("Lite quota exceeded, trying fallback model...");
-        result = await modelFallback.generateContent(prompt); // fallback
+        result = await modelFallback.generateContent(prompt); 
       } else {
         throw err;
       }
     }
     let text = (await result.response).text();
-    text = text.replace(/```json|```/g, "").trim();
-    return JSON.parse(text);
+    
+    const jsonMatch = text.match(/\{[\s\S]*\}/); 
+    if (jsonMatch) {
+      return JSON.parse(jsonMatch[0]);
+    }
+    throw new Error("Could not find valid JSON in AI response");
   } catch (err) {
     console.error("AI ATS error:", err);
     return { score: 0, matchedSkills: [], missingSkills: [], suggestions: [] };
@@ -283,15 +225,15 @@ function generateSuggestions(result, resume) {
 }
 
 
-// Add this helper function at the top (after STOP_WORDS):
 
-/* ─────────────────────────────────────────
-   POST /api/ats/check
-───────────────────────────────────────── */
+
+
+//  POST /api/ats/check
+
 router.post('/check', auth, async (req, res) => {
   try {
     const { resumeId, jobDescription } = req.body;
-    console.log("=== ATS CHECK CALLED ===");
+    console.log("ATS CHECK CALLED ");
     console.log("resumeId:", resumeId);
     console.log("jobDescription length:", jobDescription?.length);
 
@@ -320,7 +262,7 @@ router.post('/check', auth, async (req, res) => {
 
     const aiScore = aiResult.score || 0;
     const finalScore = aiScore === 0
-        ? keyWordResult.score  // AI failed — use keyword score only
+        ? keyWordResult.score  
         : Math.round(keyWordResult.score * 0.4 + aiScore * 0.6);
             console.log("=== FINAL SCORE:", finalScore);
 
@@ -352,10 +294,10 @@ router.post('/check', auth, async (req, res) => {
     res.status(500).json({ error: "Failed to calculate ATS score" });
   }
 });
-/* ─────────────────────────────────────────
-   POST /api/ats/update-summary
-   Only called when score < 75
-───────────────────────────────────────── */
+
+  // POST /api/ats/update-summary
+   //Only called when score < 75
+
 router.post('/update-summary', auth, async (req, res) => {
   try {
     const { resumeId, jobDescription } = req.body;
@@ -404,12 +346,12 @@ router.post('/update-summary', auth, async (req, res) => {
   }
 });
 
-/* ─────────────────────────────────────────
-   POST /api/ats/update-projects
-   Rewrites all project bullet points to
-   include missing keywords — pushes score
-   from 75 → 85-90+
-───────────────────────────────────────── */
+
+   //POST /api/ats/update-projects
+   //Rewrites all project bullet points to
+   //include missing keywords — pushes score
+   //from 75 → 85-90+
+
 router.post('/update-projects', auth, async (req, res) => {
   try {
     const { resumeId, jobDescription } = req.body;
@@ -422,7 +364,6 @@ router.post('/update-projects', auth, async (req, res) => {
     if (!resume.projects?.length)
       return res.status(400).json({ error: "No projects found on this resume" });
 
-    // Rewrite each project's description in parallel
     const updatedProjects = await Promise.all(
       resume.projects.map(async (project) => {
         const prompt = `
@@ -449,7 +390,6 @@ router.post('/update-projects', auth, async (req, res) => {
           const result = await model.generateContent(prompt);
           let text = (await result.response).text().trim();
 
-          // Ensure every line starts with •
           const bullets = text
             .split("\n")
             .filter(l => l.trim())
@@ -459,7 +399,7 @@ router.post('/update-projects', auth, async (req, res) => {
           return { ...project.toObject(), description: bullets };
         } catch (err) {
           console.error(`Failed to rewrite project "${project.title}":`, err);
-          return project.toObject(); // keep original if AI fails
+          return project.toObject(); 
         }
       })
     );
