@@ -746,7 +746,7 @@ export default function ResumeEditorPage() {
 
           {/* DESKTOP SIDE PREVIEW (lg only) */}
           {showPreview && (
-            <div className="hidden lg:flex flex-col flex-shrink-0" style={{ width: 420, marginRight: 16 }}>
+            <div className="hidden lg:flex flex-col flex-shrink-0" style={{ width: 420, maxWidth: "38vw" }}>
               <div className="sticky top-32">
                 <div className="flex items-center justify-between mb-3">
                   <p className="text-xs font-mono uppercase tracking-widest" style={{ color:"var(--text-3)" }}>
@@ -758,9 +758,13 @@ export default function ResumeEditorPage() {
                   </span>
                 </div>
                 <div style={{
-                  width: "100%", height: "calc(100vh - 180px)",
-                  overflowY: "auto", overflowX: "hidden",
-                  borderRadius: 16, border: "1px solid var(--border)",
+                  width: "100%",
+                  height: "calc(100vh - 160px)",
+                  maxHeight: "calc(100vh - 160px)",
+                  overflowY: "auto",
+                  overflowX: "hidden",
+                  borderRadius: 16,
+                  border: "1px solid var(--border)",
                   background: isDark ? "#1c1c1c" : "#b8b5b0",
                   padding: "24px 0 32px",
                 }}>

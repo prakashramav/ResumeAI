@@ -1,5 +1,6 @@
 import axios from "axios";
 
+// Use relative URL — works both locally and in production
 const API_URL = "/api";
 
 const api = axios.create({
