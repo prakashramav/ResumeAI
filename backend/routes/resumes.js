@@ -2,6 +2,7 @@ const express = require('express');
 const PDFDocument = require('pdfkit')
 const Resume = require('../models/Resume');
 const auth = require('../middleware/auth');
+const { generateClassic, generateMinimal, generateModern } = require('../lib/pdfGenerators');
 
 const router = express.Router();
 
@@ -102,84 +103,28 @@ router.get("/:id/download", auth, async (req, res) => {
   try {
     const resume = await Resume.findOne({ _id: req.params.id, userId: req.user._id });
     if (!resume) return res.status(404).json({ error: "Resume not found" });
-
+ 
     resume.downloads = (resume.downloads || 0) + 1;
     await resume.save();
-
-    const doc = new PDFDocument({ margin: 50, size: "A4" });
+ 
+    const template = (resume.template || "modern").toLowerCase();
+ 
+    const doc = new PDFDocument({ margin: 0, size: "A4", autoFirstPage: true });
     res.setHeader("Content-Type", "application/pdf");
     res.setHeader("Content-Disposition", `attachment; filename="${resume.title || "resume"}.pdf"`);
     doc.pipe(res);
-
-    const { personalInfo, summary, skills, experience, education, projects } = resume;
-
-    // Header
-    doc.fontSize(24).font("Helvetica-Bold").text(personalInfo.name || "Your Name", { align: "center" });
-    doc.fontSize(10).font("Helvetica").fillColor("#666");
-    const contactParts = [personalInfo.email, personalInfo.phone, personalInfo.location].filter(Boolean);
-    doc.text(contactParts.join(" | "), { align: "center" });
-    if (personalInfo.linkedin || personalInfo.github) {
-      doc.text([personalInfo.linkedin, personalInfo.github].filter(Boolean).join(" | "), { align: "center" });
+ 
+    if (template === "classic") {
+      generateClassic(doc, resume.toObject());
+    } else if (template === "minimal") {
+      generateMinimal(doc, resume.toObject());
+    } else {
+      generateModern(doc, resume.toObject());
     }
-    doc.moveDown().fillColor("#000");
-
-    const sectionTitle = (title) => {
-      doc.moveDown(0.5);
-      doc.fontSize(13).font("Helvetica-Bold").text(title.toUpperCase());
-      doc.moveTo(50, doc.y).lineTo(545, doc.y).stroke("#333");
-      doc.moveDown(0.3);
-    };
-
-    // Summary
-    if (summary) {
-      sectionTitle("Professional Summary");
-      doc.fontSize(10).font("Helvetica").text(summary);
-    }
-
-    // Skills
-    if (skills?.length) {
-      sectionTitle("Skills");
-      doc.fontSize(10).font("Helvetica").text(skills.join(" • "));
-    }
-
-    // Experience
-    if (experience?.length) {
-      sectionTitle("Experience");
-      experience.forEach((exp) => {
-        doc.fontSize(11).font("Helvetica-Bold").text(exp.position);
-        doc.fontSize(10).font("Helvetica").fillColor("#555")
-          .text(`${exp.company} | ${exp.startDate} – ${exp.current ? "Present" : exp.endDate}`);
-        doc.fillColor("#000").fontSize(10).text(exp.description || "");
-        doc.moveDown(0.3);
-      });
-    }
-
-    // Education
-    if (education?.length) {
-      sectionTitle("Education");
-      education.forEach((edu) => {
-        doc.fontSize(11).font("Helvetica-Bold").text(`${edu.degree}${edu.field ? ` in ${edu.field}` : ""}`);
-        doc.fontSize(10).font("Helvetica").fillColor("#555")
-          .text(`${edu.institution} | ${edu.startDate} – ${edu.endDate}${edu.gpa ? ` | GPA: ${edu.gpa}` : ""}`);
-        doc.fillColor("#000").moveDown(0.3);
-      });
-    }
-
-    // Projects
-    if (projects?.length) {
-      sectionTitle("Projects");
-      projects.forEach((proj) => {
-        doc.fontSize(11).font("Helvetica-Bold").text(proj.title);
-        if (proj.technologies?.length) {
-          doc.fontSize(9).font("Helvetica").fillColor("#555").text(`Tech: ${proj.technologies.join(", ")}`);
-        }
-        doc.fillColor("#000").fontSize(10).font("Helvetica").text(proj.description || "");
-        doc.moveDown(0.3);
-      });
-    }
-
+ 
     doc.end();
   } catch (err) {
+    console.error("PDF generation error:", err);
     res.status(500).json({ error: "Failed to generate PDF" });
   }
 });

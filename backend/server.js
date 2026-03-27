@@ -42,7 +42,6 @@ app.use(express.json({ limit: '10mb' })) // increase payload limit for resume da
 app.use(limiter)
 
 //routes 
-
 app.use('/api/auth', authRoutes);
 app.use('/api/resumes', resumeRoutes);
 app.use('/api/ai', aiLimiter, aiRoutes);
