@@ -249,41 +249,41 @@ export default function ResumeEditorPage() {
         );
 
         toast.success("✦ Project enhanced!");
-      }else if (type.startsWith("exp-")) {
-        const idx = parseInt(type.split("-")[1]);
-        const exp = resume.experience[idx];
+      }//else if (type.startsWith("exp-")) {
+      //   const idx = parseInt(type.split("-")[1]);
+      //   const exp = resume.experience[idx];
 
         
-        const position = exp.position?.trim() || "";
-        const company = exp.company?.trim() || "";
+      //   const position = exp.position?.trim() || "";
+      //   const company = exp.company?.trim() || "";
 
-        console.log("Position:", position);
-        console.log("Company:", company);
+      //   console.log("Position:", position);
+      //   console.log("Company:", company);
 
         
-        if (position.length < 3) {
-          toast.error("Enter valid job title");
-          return;
-        }
+      //   if (position.length < 3) {
+      //     toast.error("Enter valid job title");
+      //     return;
+      //   }
 
-        if (company.length < 2) {
-          toast.error("Enter company name");
-          return;
-        }
+      //   if (company.length < 2) {
+      //     toast.error("Enter company name");
+      //     return;
+      //   }
 
-        const res = await aiAPI.enhanceExperience({
-          position,
-          company,
-          description: exp.description || ""
-        });
+        // const res = await aiAPI.enhanceExperience({
+        //   position,
+        //   company,
+        //   description: exp.description || ""
+        // });
 
-        setField(
-          "experience",
-          updArr(resume.experience, idx, "description", res.data.enhanced)
-        );
+        // setField(
+        //   "experience",
+        //   updArr(resume.experience, idx, "description", res.data.enhanced)
+        // );
 
-        toast.success("✦ Experience enhanced!");
-      }
+        // toast.success("✦ Experience enhanced!");
+      // }
     } catch (err) { toast.error(err.message || "AI failed"); }
     finally { setAiLoading(p => ({ ...p, [type]: false })); }
   };
@@ -672,7 +672,7 @@ export default function ResumeEditorPage() {
                         onChange={e => setField("experience", updArr(resume.experience, i, "description", e.target.value))}
                         rows={3} placeholder="Key responsibilities and achievements…" className="input-field resize-none" />
                     </Field>
-                    <AIBtn loading={aiLoading[`exp-${i}`]} onClick={() => aiEnhance(`exp-${i}`)} label="AI Rewrite as Bullet Points" />
+                    {/* <AIBtn loading={aiLoading[`exp-${i}`]} onClick={() => aiEnhance(`exp-${i}`)} label="AI Rewrite as Bullet Points" /> */}
                   </div>
                 ))}
             </Section>

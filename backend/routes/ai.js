@@ -156,7 +156,7 @@ router.post("/enhance-project", auth, async (req, res) => {
     if (!title || title.trim().length < 3) {
       return res.status(400).json({ error: "Project title is required" });
     }
-
+    
     const validTech = filterValidSkills(technologies || []);
     const techText = validTech.length > 0 ? validTech.join(", ") : "relevant technologies";
 
