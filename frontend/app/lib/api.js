@@ -31,7 +31,7 @@ export const resumeAPI = {
 export const aiAPI = {
   enhanceSummary:    (data) => api.post("/ai/enhance-summary", data),
   enhanceProject:    (data) => api.post("/ai/enhance-project", data),
-  enhanceExperience: (data) => api.post("/ai/enhance-experience", data),
+  //enhanceExperience: (data) => api.post("/ai/enhance-experience", data),
   suggestSkills:     (data) => api.post("/ai/suggest-skills", data),
 };
 

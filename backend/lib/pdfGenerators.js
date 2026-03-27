@@ -1,6 +1,6 @@
 // const PDFDocument = require('pdfkit');
 
-// ── Shared palette & geometry ─────────────────────────────────────────────────
+// ── Shared palette & geometry ───────────
 const A4_W   = 595.28;   // pt
 const A4_H   = 841.89;   // pt
 const MARGIN = 45;
@@ -13,7 +13,7 @@ const THEME = {
   minimal: { accent: "#2563eb",   body: "#374151",     muted: "#6b7280",  line: "#e5e7eb" },
 };
  
-// ── Tiny helper: hex → {r,g,b} ────────────────────────────────────────────────
+// ── Tiny helper: hex → {r,g,b} ────────────────
 function hex(h) {
   const c = h.replace("#", "");
   return { r: parseInt(c.slice(0,2),16), g: parseInt(c.slice(2,4),16), b: parseInt(c.slice(4,6),16) };
@@ -25,21 +25,21 @@ function strokeHex(doc, h) {
   const {r,g,b} = hex(h); doc.strokeColor([r,g,b]);
 }
  
-// ── Bullet parser ─────────────────────────────────────────────────────────────
+// ── Bullet parser ────
 function bulletLines(text) {
   if (!text) return [];
   return text.split("\n").map(l => l.trim().replace(/^[•\-]\s*/,"")).filter(Boolean);
 }
  
-// ── Date range ────────────────────────────────────────────────────────────────
+// ── Date range ───────
 function dateRange(start, end, current) {
   const parts = [start, current ? "Present" : end].filter(Boolean);
   return parts.join(" – ");
 }
  
-// ─────────────────────────────────────────────────────────────────────────────
+// ────────────────────
 //  MODERN  (dark header, two-column sidebar)
-// ─────────────────────────────────────────────────────────────────────────────
+// ────────────────────
 export function generateModern(doc, resume) {
   const T = THEME.modern;
   const { personalInfo: pi = {}, role, summary, skills = [], experience = [], education = [], projects = [] } = resume;
@@ -72,7 +72,7 @@ export function generateModern(doc, resume) {
   // Left bg tint
   doc.rect(0, HEADER_H, MARGIN + LEFT_W + 8, A4_H).fill([249,250,251]);
  
-  // ── LEFT: Skills ────────────────────────────────────────────────────────────
+  // ── LEFT: Skills ───
   if (skills.length) {
     leftY = modernSectionTitle(doc, "SKILLS", MARGIN, leftY, LEFT_W, T.accent);
     skills.forEach(s => {
@@ -87,7 +87,7 @@ export function generateModern(doc, resume) {
     leftY += 10;
   }
  
-  // ── LEFT: Education ─────────────────────────────────────────────────────────
+  // ── LEFT: Education 
   if (education.length) {
     leftY = modernSectionTitle(doc, "EDUCATION", MARGIN, leftY, LEFT_W, T.accent);
     education.forEach(edu => {
@@ -103,7 +103,7 @@ export function generateModern(doc, resume) {
     });
   }
  
-  // ── RIGHT: Summary ──────────────────────────────────────────────────────────
+  // ── RIGHT: Summary ─
   if (summary) {
     rightY = modernSectionTitle(doc, "SUMMARY", RIGHT_X, rightY, RIGHT_W, T.accent);
     fillHex(doc, T.body);
@@ -132,7 +132,7 @@ export function generateModern(doc, resume) {
     });
   }
  
-  // ── RIGHT: Projects ─────────────────────────────────────────────────────────
+  // ── RIGHT: Projects 
   if (projects.length) {
     rightY = modernSectionTitle(doc, "PROJECTS", RIGHT_X, rightY, RIGHT_W, T.accent);
     projects.forEach(proj => {
@@ -175,16 +175,16 @@ function modernSectionTitle(doc, title, x, y, w, accentColor) {
   return y + 6;
 }
  
-// ─────────────────────────────────────────────────────────────────────────────
+// ────────────────────
 //  CLASSIC  (centered header, full-width sections, serif-ish feel)
-// ─────────────────────────────────────────────────────────────────────────────
+// ────────────────────
 export function generateClassic(doc, resume) {
   const T = THEME.classic;
   const { personalInfo: pi = {}, role, summary, skills = [], experience = [], education = [], projects = [] } = resume;
  
   let y = MARGIN;
  
-  // ── Centered name ──────────────────────────────────────────────────────────
+  // ── Centered name ─
   fillHex(doc, T.accent);
   doc.font("Helvetica-Bold").fontSize(22)
      .text(pi.name || "Your Name", MARGIN, y, { width: CONTENT_W, align: "center" });
@@ -220,7 +220,7 @@ export function generateClassic(doc, resume) {
     y += 8;
   }
  
-  // ── Summary ────────────────────────────────────────────────────────────────
+  // ── Summary ───────
   if (summary) {
     classicSection("Professional Summary");
     fillHex(doc, T.body);
@@ -228,7 +228,7 @@ export function generateClassic(doc, resume) {
     y = doc.y + 12;
   }
  
-  // ── Skills ─────────────────────────────────────────────────────────────────
+  // ── Skills ────────
   if (skills.length) {
     classicSection("Skills");
     fillHex(doc, T.body);
@@ -236,7 +236,7 @@ export function generateClassic(doc, resume) {
     y = doc.y + 12;
   }
  
-  // ── Experience ─────────────────────────────────────────────────────────────
+  // ── Experience ────
   if (experience.length) {
     classicSection("Work Experience");
     experience.forEach(exp => {
@@ -260,7 +260,7 @@ export function generateClassic(doc, resume) {
     });
   }
  
-  // ── Education ──────────────────────────────────────────────────────────────
+  // ── Education ─────
   if (education.length) {
     classicSection("Education");
     education.forEach(edu => {
@@ -278,7 +278,7 @@ export function generateClassic(doc, resume) {
     });
   }
  
-  // ── Projects ───────────────────────────────────────────────────────────────
+  // ── Projects ──────
   if (projects.length) {
     classicSection("Projects");
     projects.forEach(proj => {
@@ -308,9 +308,9 @@ export function generateClassic(doc, resume) {
   }
 }
  
-// ─────────────────────────────────────────────────────────────────────────────
+// ────────────────────
 //  MINIMAL  (clean left-aligned, blue accent, border-left cards)
-// ─────────────────────────────────────────────────────────────────────────────
+// ────────────────────
 export function generateMinimal(doc, resume) {
   const T = THEME.minimal;
   const { personalInfo: pi = {}, role, summary, skills = [], experience = [], education = [], projects = [] } = resume;
@@ -359,7 +359,7 @@ export function generateMinimal(doc, resume) {
     y += 8;
   }
  
-  // ── About ──────────────────────────────────────────────────────────────────
+  // ── About 
   if (summary) {
     minSection("About");
     card(() => {
@@ -369,7 +369,7 @@ export function generateMinimal(doc, resume) {
     });
   }
  
-  // ── Skills ─────────────────────────────────────────────────────────────────
+  // ── Skills ────
   if (skills.length) {
     minSection("Skills");
     // Render as pill-like chips: just comma-separated in minimal style
@@ -378,7 +378,7 @@ export function generateMinimal(doc, resume) {
     y = doc.y + 12;
   }
  
-  // ── Experience ─────────────────────────────────────────────────────────────
+  // ── Experience ────
   if (experience.length) {
     minSection("Experience");
     experience.forEach(exp => {
@@ -402,7 +402,7 @@ export function generateMinimal(doc, resume) {
     });
   }
  
-  // ── Education ──────────────────────────────────────────────────────────────
+  // ── Education ─────
   if (education.length) {
     minSection("Education");
     education.forEach(edu => {
@@ -418,7 +418,7 @@ export function generateMinimal(doc, resume) {
     });
   }
  
-  // ── Projects ───────────────────────────────────────────────────────────────
+  // ── Projects ──────
   if (projects.length) {
     minSection("Projects");
     projects.forEach(proj => {
