@@ -19,7 +19,7 @@ ResumeAI is a premium, full-stack SaaS platform designed to transform the job ap
 ## 📸 Screenshots
 
 ### 🏠 Homepage
-![Homepage](<img width="1920" height="1020" alt="image" src="https://github.com/user-attachments/assets/cdb9e029-f3f9-4c48-b0e9-0cccdfe69292" />
+![Homepage](<img width="1920" height="1020" alt="image" src="https://github.com/user-attachments/assets/601b6f73-1192-4581-ac0a-de8bb22d5936" />
 )
 
 ### 📊 Dashboard
