@@ -16,6 +16,23 @@ ResumeAI is a premium, full-stack SaaS platform designed to transform the job ap
 - **🔒 Secure & Private**: Industry-standard JWT authentication with httpOnly cookies ensuring your data stays yours.
 
 ---
+## 📸 Screenshots
+
+### 🏠 Homepage
+![Homepage](<img width="1920" height="1020" alt="image" src="https://github.com/user-attachments/assets/cdb9e029-f3f9-4c48-b0e9-0cccdfe69292" />
+)
+
+### 📊 Dashboard
+![Dashboard](screenshots/dashboard.png)
+
+### 🎯 ATS Score Checker
+![ATS Score](screenshots/ats-score.png)
+
+### 🎭 AI Mock Interview
+![Interview](screenshots/interview.png)
+
+### 📄 Resume Templates
+![Templates](screenshots/templates.png)
 
 ## 🛠️ Tech Stack
 
