@@ -5,6 +5,7 @@ import axios from 'axios';
 
 // Use relative URL — works both locally and in production
 const API_URL = "/api";
+// const API_URL = "http://localhost:5000/api";
 
 axios.defaults.withCredentials = true;
 

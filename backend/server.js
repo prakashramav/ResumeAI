@@ -9,6 +9,12 @@ const resumeRoutes = require('./routes/resumes')
 const aiRoutes = require('./routes/ai')
 const atsRoutes = require('./routes/ats')
 const interviewRoutes = require('./routes/interview')
+const dns = require('dns');
+dns.setServers(['8.8.8.8', '1.1.1.1']);
+dns.setDefaultResultOrder('ipv4first');
+
+require('dotenv').config();
+// ... rest of your imports
 
 connectDB();
 
