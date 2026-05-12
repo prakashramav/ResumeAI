@@ -54,22 +54,34 @@ const STOP_WORDS = new Set([
     "written","english","interest","knowledge","familiarity","exposure",
     "experience","experiences","experienced",
 
+    // Job posting boilerplate — ADD THESE
+  "full","time","part","internship","intern","stipend","paid","unpaid",
+  "certificate","certified","certification","deadline","apply","application",
+  "hiring","hired","position","vacancy","opening","immediate","join",
+  "month","months","year","years","week","weeks","day","days",
+  "2024","2025","2026","2027","10th","12th","graduate","graduates",
+  "lpa","ctc","annum","package","bonus","benefits","benefit","perks",
+  "located","location","locate","locatmonth","zenith","byte","zenithbyte",
+  "batch","batches","fresher","freshers","eligible","eligibility",
+  "good","great","excellent","preferred","preferred","required","require",
+  "plus","bonus","mandatory","optional","immediate","immediately",
+
 ]);
 
 
 function stemWord(word) {
-  if (word.length < 4) return word; 
+  if (word.length < 5) return word;
+  if (TECH_KEYWORDS.has(word)) return word; 
 
-  if (word.endsWith("ing")   && word.length > 6)  return word.slice(0, -3);
-  if (word.endsWith("tion")  && word.length > 6)  return word.slice(0, -3); 
-  if (word.endsWith("ment")  && word.length > 6)  return word.slice(0, -4); 
-  if (word.endsWith("ity")   && word.length > 5)  return word.slice(0, -3); 
-  if (word.endsWith("ies")   && word.length > 4)  return word.slice(0, -3) + "y";
-  if (word.endsWith("ed")    && word.length > 4)  return word.slice(0, -2);
-  if (word.endsWith("er")    && word.length > 4)  return word.slice(0, -2);
-  if (word.endsWith("ly")    && word.length > 4)  return word.slice(0, -2);
-  if (word.endsWith("s")     && word.length > 3)  return word.slice(0, -1);
-
+  if (word.endsWith("ing")  && word.length > 6) return word.slice(0, -3);
+  if (word.endsWith("tion") && word.length > 6) return word.slice(0, -3);
+  if (word.endsWith("ment") && word.length > 6) return word.slice(0, -4);
+  if (word.endsWith("ity")  && word.length > 5) return word.slice(0, -3);
+  if (word.endsWith("ies")  && word.length > 4) return word.slice(0, -3) + "y";
+  if (word.endsWith("ed")   && word.length > 4) return word.slice(0, -2);
+  if (word.endsWith("er")   && word.length > 4) return word.slice(0, -2);
+  if (word.endsWith("ly")   && word.length > 4) return word.slice(0, -2);
+  if (word.endsWith("s")    && word.length > 4) return word.slice(0, -1); // ← raise from 3 to 4
   return word;
 }
 function extractKeywords(text) {
@@ -102,9 +114,9 @@ function calculateAtsScore(resumeText, jobText) {
     .map(([word]) => word);
 
   const nonTechFromJob = Object.entries(jobFreq)
-    .filter(([word]) => !TECH_KEYWORDS.has(word))
-    .sort((a, b) => b[1] - a[1])
-    .map(([word]) => word);
+  .filter(([word]) => !TECH_KEYWORDS.has(word) && jobFreq[word] > 1) 
+  .sort((a, b) => b[1] - a[1])
+  .map(([word]) => word);
 
   // Fill up to 30 keywords — tech first, then non-tech as fallback
   const sortedJobKeywords = [
@@ -114,6 +126,7 @@ function calculateAtsScore(resumeText, jobText) {
 
   console.log("Tech keywords from JD:", techFromJob);
   console.log("Total keywords used:", sortedJobKeywords.length);
+  console.log("Non-tech keywords included:", nonTechFromJob.slice(0, 20));
 
   const matched = [];
   const missing = [];
